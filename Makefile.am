@@ -17,11 +17,32 @@ if !ENABLE_DEBUG
 AM_LDFLAGS += -s
 endif
 
+# binutils does not take into account entry point when
+# -pie is used so we need to provide it manually
+# ENTRY_PREFIX is empty for x86_64, underscore ("_") otherwise
+ENTRY_PREFIX := $(if $(filter x86_64,$(host_cpu)),,_)
+
+# --dynamicbase to enable ASLR protection
+# --nxcompat is to enable NX protection
+# -pie as --dynamicbase requires relocations
+LDFLAGS_SECURITY_COMMON = \
+	-Wl,--dynamicbase -Wl,-pie \
+	-Wl,--nxcompat \
+	$(NULL)
+LDFLAGS_SECURITY_GUI = $(LDFLAGS_SECURITY_COMMON) \
+	-Wl,-e,$(ENTRY_PREFIX)WinMainCRTStartup \
+	-mwindows \
+	$(NULL)
+LDFLAGS_SECURITY_CUI = $(LDFLAGS_SECURITY_COMMON) \
+	-Wl,-e,$(ENTRY_PREFIX)mainCRTStartup \
+	-mconsole \
+	$(NULL)
+
 bin_PROGRAMS = vdagent vdservice
 
 vdagent_LDADD = $(LIBPNG_LIBS) $(ZLIB_LIBS) -lwtsapi32 -lgdi32 -luuid -lole32 -loleaut32 -lmpr -lshlwapi vdagent_rc.$(OBJEXT)
 vdagent_CXXFLAGS = $(AM_CXXFLAGS) $(LIBPNG_CFLAGS)
-vdagent_LDFLAGS = $(AM_LDFLAGS) -Wl,--subsystem,windows
+vdagent_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_GUI)
 vdagent_SOURCES =			\
 	common/vdcommon.cpp             \
 	common/vdcommon.h		\
@@ -54,6 +75,7 @@ vdagent_rc.$(OBJEXT): vdagent/vdagent.rc
 MAINTAINERCLEANFILES += vdagent_rc.$(OBJEXT)
 
 vdservice_LDADD = -lwtsapi32 vdservice_rc.$(OBJEXT)
+vdservice_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_CUI)
 vdservice_SOURCES =			\
 	common/stdint.h			\
 	common/vdcommon.cpp             \
@@ -72,7 +94,7 @@ check_PROGRAMS = imagetest
 
 imagetest_LDADD = $(LIBPNG_LIBS) $(ZLIB_LIBS) -lwtsapi32 -lgdi32
 imagetest_CXXFLAGS = $(AM_CXXFLAGS) $(LIBPNG_CFLAGS)
-imagetest_LDFLAGS = $(AM_LDFLAGS) -Wl,--subsystem,console
+imagetest_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_CUI)
 imagetest_SOURCES =			\
 	common/vdcommon.cpp             \
 	common/vdcommon.h		\
@@ -92,7 +114,7 @@ check_PROGRAMS += test-log-win
 TESTS += test-log
 EXTRA_DIST += test-log
 
-test_log_win_LDFLAGS = $(AM_LDFLAGS) -Wl,--subsystem,console
+test_log_win_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_CUI)
 test_log_win_SOURCES =			\
 	common/vdcommon.cpp             \
 	common/vdcommon.h		\
