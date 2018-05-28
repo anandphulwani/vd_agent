@@ -143,7 +143,8 @@ EXTRA_DIST +=			\
 	vdagent/vdagent.vcproj	\
 	vdservice/resource.h	\
 	vdservice/vdservice.rc	\
-	vdservice/vdservice.vcproj
+	vdservice/vdservice.vcproj \
+	CMakeLists.txt
 
 # see git-version-gen
 dist-hook:
