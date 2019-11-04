@@ -1,9 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
 project(vdagent-win)
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -s")
+if(MSVC)
+    # find using vcpkg packages
+    find_package(libpng CONFIG REQUIRED)
+    find_path(PNG_INCLUDE_DIR NAMES png.h)
 
-find_package(PNG REQUIRED)
+    set(PNG_LIBRARY png_static)
+    set(ZLIB_LIBRARY)
+    set(COMMSUPPW_LIBRARY comsuppw)
+else(MSVC)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -s")
+
+    find_package(PNG REQUIRED)
+    set(COMMSUPPW_LIBRARY)
+endif(MSVC)
 
 include_directories(common . spice-protocol ${PNG_INCLUDE_DIR})
 add_definitions(-DUNICODE -D_UNICODE -DOLDMSVCRT -DWINVER=0x0601)
@@ -39,6 +50,7 @@ target_link_libraries(vdagent
     uuid
     ole32
     oleaut32
+    ${COMMSUPPW_LIBRARY}
 )
 
 add_executable(vdservice
