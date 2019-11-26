@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <share.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <vector>
 
 #define LOG_ROLL_SIZE (1024 * 1024)
@@ -46,7 +48,7 @@ VDLog* VDLog::get(TCHAR* path)
     if (_log || !path) {
         return _log;
     }
-    __stat64 buf;
+    struct _stat64 buf;
     if (_wstat64(path, &buf) == 0 && buf.st_size > LOG_ROLL_SIZE) {
         TCHAR roll_path[MAX_PATH];
         swprintf_s(roll_path, MAX_PATH, L"%s.1", path);
