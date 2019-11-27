@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.0)
 project(vdagent-win)
 
 if(MSVC)
+    # generate PDB files
+    # see https://stackoverflow.com/questions/28178978/how-to-generate-pdb-files-for-release-build-with-cmake-flags/31264946
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF" CACHE STRING "" FORCE)
+
     # find using vcpkg packages
     find_package(libpng CONFIG REQUIRED)
     find_path(PNG_INCLUDE_DIR NAMES png.h)
