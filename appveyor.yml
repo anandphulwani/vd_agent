@@ -1,0 +1,38 @@
+configuration: Release
+
+cache: c:\Tools\vcpkg\installed\
+
+environment:
+  VCPKG_ROOT: c:\Tools\vcpkg
+
+install:
+- git submodule update --init --recursive
+- mkdir build32
+- mkdir build64
+- cd %VCPKG_ROOT%
+- git pull
+- .\bootstrap-vcpkg.bat
+- vcpkg install libpng:x64-windows-static libpng:x86-windows-static
+
+build_script:
+- cd %APPVEYOR_BUILD_FOLDER%\build64
+- cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows-static ..
+- cmake --build . --config Release
+
+- cd %APPVEYOR_BUILD_FOLDER%\build32
+- cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -A Win32 -DVCPKG_TARGET_TRIPLET=x86-windows-static ..
+- cmake --build . --config Release
+
+after_build:
+- cd %APPVEYOR_BUILD_FOLDER%\build64
+- 7z a vdagent-win-x64.zip Release\*
+
+- cd %APPVEYOR_BUILD_FOLDER%\build32
+- 7z a vdagent-win-x86.zip Release\*
+
+artifacts:
+- path: build64/vdagent-win-x64.zip
+  name: VdAgentWin-x64
+
+- path: build32/vdagent-win-x86.zip
+  name: VdAgentWin-x86
