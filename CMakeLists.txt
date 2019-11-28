@@ -126,9 +126,57 @@ target_link_libraries(vdservice
     wtsapi32
 )
 
+enable_testing()
+add_custom_target(check COMMAND ctest -C $<CONFIG>)
+
+if(CMAKE_CROSSCOMPILING)
+    set(CMAKE_CROSSCOMPILING_EMULATOR wine)
+endif()
+
+add_executable(imagetest EXCLUDE_FROM_ALL
+    common/vdcommon.cpp
+    common/vdcommon.h
+    common/vdlog.cpp
+    common/vdlog.h
+    vdagent/imagetest.cpp
+    vdagent/image.cpp
+    vdagent/image.h
+    vdagent/imagepng.cpp
+    vdagent/imagepng.h
+)
+target_link_libraries(imagetest
+    ${PNG_LIBRARY}
+    ${ZLIB_LIBRARY}
+    wtsapi32
+)
+add_test(NAME test-png COMMAND bash "${CMAKE_SOURCE_DIR}/test-png")
+
+add_executable(test-log EXCLUDE_FROM_ALL
+    common/vdcommon.cpp
+    common/vdcommon.h
+    common/vdlog.cpp
+    common/vdlog.h
+    common/test-log.cpp
+)
+add_test(NAME test-log COMMAND test-log)
+
+add_executable(test-shell EXCLUDE_FROM_ALL
+    vdagent/test-shell.cpp
+)
+target_link_libraries(test-shell
+    uuid
+    ole32
+    oleaut32
+    ${COMMSUPPW_LIBRARY}
+)
+add_test(NAME test-shell COMMAND test-shell)
+
+add_dependencies(check test-log test-shell imagetest)
+
 if(MSVC)
     # select static CRT without debugging (/MT option)
     if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.15")
-        set_property(TARGET vdagent vdservice PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+        set_property(TARGET vdagent vdservice imagetest
+            PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
     endif()
 endif()

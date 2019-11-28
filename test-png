@@ -17,6 +17,24 @@ verbose() {
     fi
 }
 
+# under Windows we don't need to run test under Wine
+WINE=wine
+if [ "x`uname -s`" != xLinux ]; then
+    WINE=
+fi
+
+# this fixes search under Windows which often detect convert utility
+# under system directory, look for the one in the same directory as
+# mogrify
+CONVERT="$(command -v mogrify)"
+CONVERT="${CONVERT//mogrify/convert}"
+
+# MSVC build put executables under <Configuration> directory
+IMAGETEST=imagetest.exe
+if [ -e ./Release/imagetest.exe ]; then
+    IMAGETEST=./Release/imagetest.exe
+fi
+
 compare_images() {
     DIFF=$(compare -metric AE $1 $2 - 2>&1 > /dev/null || true)
     if [ "$DIFF" != "0" ]; then
@@ -26,8 +44,8 @@ compare_images() {
 
 do_test() {
     echo "Running image $IMAGE with '$*'..."
-    convert $IMAGE "$@" $IN
-    wine imagetest.exe $IN $OUT_BMP $OUT
+    $CONVERT $IMAGE "$@" $IN
+    $WINE $IMAGETEST $IN $OUT_BMP $OUT
     verbose ls -lh $IN
     verbose identify $IN
     verbose identify $OUT_BMP

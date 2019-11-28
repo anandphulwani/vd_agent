@@ -9,25 +9,36 @@ install:
 - git submodule update --init --recursive
 - mkdir build32
 - mkdir build64
+
+- choco install --timeout 600 -y imagemagick.tool
+
 - cd %VCPKG_ROOT%
 - git pull
 - .\bootstrap-vcpkg.bat
 - vcpkg install libpng:x64-windows-static libpng:x86-windows-static
 
 build_script:
+- set CTEST_OUTPUT_ON_FAILURE=1
+
 - cd %APPVEYOR_BUILD_FOLDER%\build64
 - cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows-static ..
 - cmake --build . --config Release
+- cmake --build . --config Release --target check
 
 - cd %APPVEYOR_BUILD_FOLDER%\build32
 - cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -A Win32 -DVCPKG_TARGET_TRIPLET=x86-windows-static ..
 - cmake --build . --config Release
+- cmake --build . --config Release --target check
 
 after_build:
 - cd %APPVEYOR_BUILD_FOLDER%\build64
+- del Release\test*
+- del Release\imagetest*
 - 7z a vdagent-win-x64.zip Release\*
 
 - cd %APPVEYOR_BUILD_FOLDER%\build32
+- del Release\test*
+- del Release\imagetest*
 - 7z a vdagent-win-x86.zip Release\*
 
 artifacts:
