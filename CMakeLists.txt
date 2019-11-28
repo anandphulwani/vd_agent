@@ -1,7 +1,22 @@
 cmake_minimum_required(VERSION 3.0)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.15")
+    # this is for MSVC_RUNTIME_LIBRARY property below
+    cmake_policy(SET CMP0091 NEW)
+endif()
 project(vdagent-win)
 
 if(MSVC)
+    if(${CMAKE_VERSION} VERSION_LESS "3.15")
+        # compile MSVCRT into executable (link it statically)
+        foreach(flag_var
+            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+            if(${flag_var} MATCHES "/MD")
+                string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+            endif(${flag_var} MATCHES "/MD")
+        endforeach(flag_var)
+    endif()
+
     # generate PDB files
     # see https://stackoverflow.com/questions/28178978/how-to-generate-pdb-files-for-release-build-with-cmake-flags/31264946
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
@@ -70,3 +85,10 @@ add_executable(vdservice
 target_link_libraries(vdservice
     wtsapi32
 )
+
+if(MSVC)
+    # select static CRT without debugging (/MT option)
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.15")
+        set_property(TARGET vdagent vdservice PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    endif()
+endif()
