@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
-#include "../config.h"
+#include "config.h"
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32

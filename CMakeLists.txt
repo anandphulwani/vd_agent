@@ -42,7 +42,7 @@ endif()
 config_write("#define RC_PRODUCTVERSION ${RC_PRODUCTVERSION}\n")
 config_write("#define RC_PRODUCTVERSION_STR \"${RC_PRODUCTVERSION}\"\n")
 
-configure_file(${CMAKE_BINARY_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/config.h)
+configure_file(${CMAKE_BINARY_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
 
 
 if(MSVC)
@@ -76,7 +76,7 @@ else(MSVC)
     set(COMMSUPPW_LIBRARY)
 endif(MSVC)
 
-include_directories(common . spice-protocol ${PNG_INCLUDE_DIR})
+include_directories(common ${CMAKE_BINARY_DIR} spice-protocol ${PNG_INCLUDE_DIR})
 add_definitions(-DUNICODE -D_UNICODE -DOLDMSVCRT -DWINVER=0x0601)
 
 add_executable(vdagent WIN32
