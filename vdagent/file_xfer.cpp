@@ -105,6 +105,7 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
         return;
     }
 
+    static_assert(SPICE_N_ELEMENTS(file_path) >= MAX_PATH, "file_path too small");
     if (!get_download_directory(file_path)) {
         return;
     }
@@ -123,7 +124,7 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
     wlen = _tcslen(file_path);
     // make sure we have enough space
     // (1 char for separator, 1 char for filename and 1 char for NUL terminator)
-    if (wlen + 3 >= MAX_PATH) {
+    if (wlen + 3 >= SPICE_N_ELEMENTS(file_path)) {
         vd_printf("error: file too long %ls\\%s", file_path, file_name);
         return;
     }
@@ -145,7 +146,8 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
             snprintf(dest_filename, sizeof(dest_filename),
                      "%.*s (%d)%s", int(extension - file_name), file_name, attempt, extension);
         }
-        if ((MultiByteToWideChar(CP_UTF8, 0, dest_filename, -1, file_path + wlen, MAX_PATH - wlen)) == 0) {
+        if ((MultiByteToWideChar(CP_UTF8, 0, dest_filename, -1,
+                                 file_path + wlen, SPICE_N_ELEMENTS(file_path) - wlen)) == 0) {
             vd_printf("failed converting file_name:%s to WideChar", dest_filename);
             return;
         }
