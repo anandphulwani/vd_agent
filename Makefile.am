@@ -137,13 +137,10 @@ EXTRA_DIST +=			\
 	config.h		\
 	common/version.rc	\
 	tests/clipboard.py	\
-	vdagent.sln		\
 	vdagent/resource.h	\
 	vdagent/vdagent.rc	\
-	vdagent/vdagent.vcproj	\
 	vdservice/resource.h	\
 	vdservice/vdservice.rc	\
-	vdservice/vdservice.vcproj \
 	CMakeLists.txt
 
 # see git-version-gen
