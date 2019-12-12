@@ -18,9 +18,6 @@ if !ENABLE_DEBUG
 AM_LDFLAGS += -s
 endif
 
-# -lversion is needed for the GetFileVersion* API which is used by vdlog.cpp
-LIBS = -lversion
-
 bin_PROGRAMS = vdagent vdservice
 
 vdagent_LDADD = $(LIBPNG_LIBS) $(ZLIB_LIBS) -lwtsapi32 -lgdi32 -luuid -lole32 -loleaut32 vdagent_rc.$(OBJEXT)
