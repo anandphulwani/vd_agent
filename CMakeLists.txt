@@ -180,3 +180,5 @@ if(MSVC)
             PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
     endif()
 endif()
+
+install(TARGETS vdagent vdservice)
