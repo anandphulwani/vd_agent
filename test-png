@@ -19,15 +19,13 @@ verbose() {
 
 # under Windows we don't need to run test under Wine
 WINE=wine
+MAGICK=
 if [ "x`uname -s`" != xLinux ]; then
     WINE=
+    if command -V magick.exe &> /dev/null; then
+        MAGICK=magick.exe
+    fi
 fi
-
-# this fixes search under Windows which often detect convert utility
-# under system directory, look for the one in the same directory as
-# mogrify
-CONVERT="$(command -v mogrify)"
-CONVERT="${CONVERT//mogrify/convert}"
 
 # MSVC build put executables under <Configuration> directory
 IMAGETEST=imagetest.exe
@@ -36,7 +34,7 @@ if [ -e ./Release/imagetest.exe ]; then
 fi
 
 compare_images() {
-    DIFF=$(compare -metric AE $1 $2 - 2>&1 > /dev/null || true)
+    DIFF=$($MAGICK compare -metric AE $1 $2 - 2>&1 > /dev/null || true)
     if [ "$DIFF" != "0" ]; then
         error "Images $1 and $2 are too different, diff $DIFF"
     fi
@@ -44,11 +42,11 @@ compare_images() {
 
 do_test() {
     echo "Running image $IMAGE with '$*'..."
-    $CONVERT $IMAGE "$@" $IN
+    $MAGICK convert $IMAGE "$@" $IN
     $WINE $IMAGETEST $IN $OUT_BMP $OUT
     verbose ls -lh $IN
-    verbose identify $IN
-    verbose identify $OUT_BMP
+    verbose $MAGICK identify $IN
+    verbose $MAGICK identify $OUT_BMP
     compare_images $IN $OUT
     compare_images $IN $OUT_BMP
     rm -f $IN $OUT $OUT_BMP
