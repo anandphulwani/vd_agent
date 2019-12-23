@@ -1,3 +1,4 @@
 [submodule "spice-protocol"]
 	path = spice-protocol
 	url = git://git.freedesktop.org/git/spice/spice-protocol.git
+	ignore=untracked
