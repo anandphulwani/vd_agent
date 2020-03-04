@@ -35,6 +35,7 @@ BuildRequires:  mingw64-zlib-static
 BuildRequires:  mingw32-winpthreads-static
 BuildRequires:  mingw64-winpthreads-static
 BuildRequires:  pkgconfig
+BuildRequires:  msitools
 %if 0%{can_do_check_x64}
 BuildRequires:  ImageMagick wine-core(x86-64)
 %endif
@@ -92,6 +93,8 @@ Features:
 %mingw_configure --enable-debug
 %mingw_make %{?_smp_mflags} V=1
 
+%mingw_make %{?_smp_mflags} V=1 msi
+
 %if 0%{can_do_check_x86} || 0%{can_do_check_x64}
 %check
 %define mingw_build_win32 %{can_do_check_x86}
@@ -104,12 +107,22 @@ Features:
 %install
 %mingw_make_install DESTDIR=$RPM_BUILD_ROOT
 
+%if 0%{mingw_build_win32}
+cp build_win32/spice-vdagent*.msi $RPM_BUILD_ROOT/%{mingw32_bindir}/
+%endif
+
+%if 0%{mingw_build_win64}
+cp build_win64/spice-vdagent*.msi $RPM_BUILD_ROOT/%{mingw64_bindir}/
+%endif
+
 %files -n mingw32-spice-vdagent
 %defattr(-,root,root)
 %{mingw32_bindir}/vdagent.exe
 %{mingw32_bindir}/vdservice.exe
+%{mingw32_bindir}/spice-vdagent*.msi
 
 %files -n mingw64-spice-vdagent
 %defattr(-,root,root)
 %{mingw64_bindir}/vdagent.exe
 %{mingw64_bindir}/vdservice.exe
+%{mingw64_bindir}/spice-vdagent*.msi
