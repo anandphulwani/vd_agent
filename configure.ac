@@ -118,7 +118,6 @@ ACX_SET_VAR(CFLAGS, "$CFLAGS $LIBPNG_CFLAGS -Wall",
 dnl ---------------------------------------------------------------------------
 dnl - Makefiles, etc.
 dnl ---------------------------------------------------------------------------
-AC_CONFIG_SUBDIRS([spice-protocol])
 AC_CONFIG_FILES([
 Makefile
 mingw-spice-vdagent.spec

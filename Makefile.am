@@ -2,8 +2,6 @@ NULL =
 EXTRA_DIST = mingw-spice-vdagent.spec
 MAINTAINERCLEANFILES = mingw-spice-vdagent.spec
 
-DIST_SUBDIRS = spice-protocol
-
 AM_CPPFLAGS = 				\
 	-DUNICODE 			\
 	-D_UNICODE			\
@@ -139,6 +137,20 @@ EXTRA_DIST +=			\
 	vdservice/resource.h	\
 	vdservice/vdservice.rc	\
 	CMakeLists.txt
+
+## spice-protocol moved to Meson, distribute manually
+EXTRA_DIST +=					\
+	spice-protocol/spice/barrier.h		\
+	spice-protocol/spice/end-packed.h	\
+	spice-protocol/spice/enums.h		\
+	spice-protocol/spice/ipc_ring.h		\
+	spice-protocol/spice/macros.h		\
+	spice-protocol/spice/qxl_dev.h		\
+	spice-protocol/spice/qxl_windows.h	\
+	spice-protocol/spice/start-packed.h	\
+	spice-protocol/spice/types.h		\
+	spice-protocol/spice/vd_agent.h		\
+	$(NULL)
 
 # see git-version-gen
 dist-hook:
