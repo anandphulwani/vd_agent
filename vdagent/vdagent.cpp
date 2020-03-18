@@ -1345,7 +1345,7 @@ void VDAgent::dispatch_message(VDAgentMessage* msg, uint32_t port)
         if (_session_is_locked) {
             VDAgentFileXferStartMessage *s = (VDAgentFileXferStartMessage *)msg->data;
             status.common.id = s->id;
-            status.common.result = VD_AGENT_FILE_XFER_STATUS_ERROR;
+            status.common.result = VD_AGENT_FILE_XFER_STATUS_SESSION_LOCKED;
             vd_printf("Fail to start file-xfer %u due: Locked session", status.common.id);
             agent_prepare_filexfer_status(&status, &status_size,
                                           _client_caps.data(), _client_caps.size());
