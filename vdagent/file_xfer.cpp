@@ -97,6 +97,10 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
     }
     vd_printf("%u %s (%" PRIu64 ")", start->id, file_name, file_size);
     if (strcspn(file_name, FILENAME_RESERVED_CHAR_LIST) != strlen(file_name)) {
+        status.common.result = VD_AGENT_FILE_XFER_STATUS_ERROR;
+        status.error.error_type = VD_AGENT_FILE_XFER_STATUS_ERROR_GLIB_IO;
+        status.error.error_code = 10; // G_IO_ERROR_INVALID_FILENAME
+        status_size = sizeof(status.common) + sizeof(status.error);
         vd_printf("filename contains invalid characters");
         return;
     }
