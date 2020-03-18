@@ -921,11 +921,6 @@ bool VDAgent::handle_display_config(const VDAgentDisplayConfig* display_config, 
 
 bool VDAgent::handle_max_clipboard(const VDAgentMaxClipboard *msg, uint32_t size)
 {
-    if (size != sizeof(VDAgentMaxClipboard)) {
-        vd_printf("VDAgentMaxClipboard: unexpected msg size %u (expected %lu)",
-                  size, (unsigned long)sizeof(VDAgentMaxClipboard));
-        return false;
-    }
     vd_printf("Set max clipboard size: %d", msg->max);
     _max_clipboard = msg->max;
     return true;
@@ -1257,57 +1252,26 @@ void VDAgent::dispatch_message(VDAgentMessage* msg, uint32_t port)
 {
     bool res = true;
 
-    // check minimal message size
-    int min_size = -1;
-    switch (msg->type) {
-    case VD_AGENT_MOUSE_STATE:
-        min_size = sizeof(VDAgentMouseState);
-        break;
-    case VD_AGENT_MONITORS_CONFIG:
-        min_size = sizeof(VDAgentMonitorsConfig);
-        break;
-    case VD_AGENT_CLIPBOARD:
-        min_size = sizeof(VDAgentClipboard);
-        break;
-    case VD_AGENT_CLIPBOARD_GRAB:
-        min_size = sizeof(VDAgentClipboardGrab);
-        break;
-    case VD_AGENT_CLIPBOARD_REQUEST:
-        min_size = sizeof(VDAgentClipboardRequest);
-        break;
-    case VD_AGENT_CLIPBOARD_RELEASE:
-        min_size = sizeof(VDAgentClipboardRelease);
-        break;
-    case VD_AGENT_DISPLAY_CONFIG:
-        min_size = sizeof(VDAgentDisplayConfig);
-        break;
-    case VD_AGENT_ANNOUNCE_CAPABILITIES:
-        min_size = sizeof(VDAgentAnnounceCapabilities);
-        break;
-    case VD_AGENT_FILE_XFER_START:
-        min_size = sizeof(VDAgentFileXferStatusMessage);
-        break;
-    case VD_AGENT_FILE_XFER_STATUS:
-        min_size = sizeof(VDAgentFileXferStatusMessage);
-        break;
-    case VD_AGENT_FILE_XFER_DATA:
-        min_size = sizeof(VDAgentFileXferDataMessage);
-        break;
-    case VD_AGENT_CLIENT_DISCONNECTED:
-        min_size = 0;
-        break;
-    case VD_AGENT_MAX_CLIPBOARD:
-        min_size = sizeof(VDAgentMaxClipboard);
-        break;
-    }
-    if (min_size < 0) {
+    // check message
+    switch (agent_check_message(msg, msg->data, _client_caps.data(), _client_caps.size())) {
+    case AGENT_CHECK_WRONG_PROTOCOL_VERSION:
+        vd_printf("Invalid protocol %u", msg->protocol);
+        _running = false;
+        return;
+    case AGENT_CHECK_UNKNOWN_MESSAGE:
         vd_printf("Unsupported message type %u size %u, ignoring", msg->type, msg->size);
         return;
-    }
-    if (msg->size < (unsigned) min_size) {
+    case AGENT_CHECK_INVALID_SIZE:
         vd_printf("Unexpected msg size %u for message type %u", msg->size, msg->type);
         _running = false;
         return;
+    case AGENT_CHECK_TRUNCATED:
+    case AGENT_CHECK_INVALID_DATA:
+        vd_printf("Received malformed message, size %u type %u", msg->size, msg->type);
+        _running = false;
+        return;
+    case AGENT_CHECK_NO_ERROR:
+        break;
     }
 
     switch (msg->type) {
