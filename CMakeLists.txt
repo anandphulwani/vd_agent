@@ -76,7 +76,7 @@ else(MSVC)
     set(COMMSUPPW_LIBRARY)
 endif(MSVC)
 
-include_directories(common ${CMAKE_BINARY_DIR} spice-protocol ${PNG_INCLUDE_DIR})
+include_directories(common ${CMAKE_BINARY_DIR} spice-protocol spice-common ${PNG_INCLUDE_DIR})
 add_definitions(-DUNICODE -D_UNICODE -DOLDMSVCRT -DWINVER=0x0601)
 
 add_executable(vdagent WIN32
@@ -93,6 +93,7 @@ add_executable(vdagent WIN32
     vdagent/file_xfer.cpp
     vdagent/file_xfer.h
     vdagent/vdagent.cpp
+    spice-common/common/agent.c
     vdagent/as_user.cpp
     vdagent/as_user.h
     vdagent/image.cpp

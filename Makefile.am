@@ -9,6 +9,7 @@ AM_CPPFLAGS = 				\
 	-DWINVER=0x0601			\
 	-I$(top_srcdir)/common		\
 	-I$(top_srcdir)/spice-protocol	\
+	-I$(top_srcdir)/spice-common	\
 	$(NULL)
 
 AM_LDFLAGS = -static
@@ -26,6 +27,8 @@ vdagent_SOURCES =			\
 	common/vdcommon.h		\
 	common/vdlog.cpp		\
 	common/vdlog.h			\
+	spice-common/common/agent.c	\
+	spice-common/common/agent.h	\
 	vdagent/display_configuration.cpp \
 	vdagent/display_configuration.h \
 	vdagent/desktop_layout.cpp	\
