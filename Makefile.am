@@ -102,6 +102,7 @@ test_log_win_SOURCES =			\
 
 check_PROGRAMS += test-shell-win
 TESTS += test-shell
+EXTRA_DIST += test-shell
 test_shell_win_LDFLAGS = $(AM_LDFLAGS) -Wl,--subsystem,console
 test_shell_win_LDADD = -luuid -lole32 -loleaut32
 test_shell_win_SOURCES = \
