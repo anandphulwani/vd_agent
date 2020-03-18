@@ -77,7 +77,7 @@ static bool get_download_directory(TCHAR file_path[MAX_PATH])
 }
 
 void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
-                            VDAgentFileXferStatusMessage* status)
+                            AgentFileXferStatusMessageFull& status, size_t& status_size)
 {
     char* file_meta = (char*)start->data;
     TCHAR file_path[MAX_PATH];
@@ -88,8 +88,8 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
     AsUser as_user;
     size_t wlen;
 
-    status->id = start->id;
-    status->result = VD_AGENT_FILE_XFER_STATUS_ERROR;
+    status.common.id = start->id;
+    status.common.result = VD_AGENT_FILE_XFER_STATUS_ERROR;
     if (!g_key_get_string(file_meta, "vdagent-file-xfer", "name", file_name, sizeof(file_name)) ||
             !g_key_get_uint64(file_meta, "vdagent-file-xfer", "size", &file_size)) {
         vd_printf("file id %u meta parsing failed", start->id);
@@ -165,17 +165,17 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
     }
     auto task = std::make_shared<FileXferTask>(handle, file_size, file_path);
     _tasks[start->id] = task;
-    status->result = VD_AGENT_FILE_XFER_STATUS_CAN_SEND_DATA;
+    status.common.result = VD_AGENT_FILE_XFER_STATUS_CAN_SEND_DATA;
 }
 
 bool FileXfer::handle_data(VDAgentFileXferDataMessage* data,
-                           VDAgentFileXferStatusMessage* status)
+                           AgentFileXferStatusMessageFull& status, size_t& status_size)
 {
     FileXferTasks::iterator iter;
     DWORD written;
 
-    status->id = data->id;
-    status->result = VD_AGENT_FILE_XFER_STATUS_ERROR;
+    status.common.id = data->id;
+    status.common.result = VD_AGENT_FILE_XFER_STATUS_ERROR;
     iter = _tasks.find(data->id);
     if (iter == _tasks.end()) {
         vd_printf("file id %u not found", data->id);
@@ -197,7 +197,7 @@ bool FileXfer::handle_data(VDAgentFileXferDataMessage* data,
     }
     vd_printf("%u completed", iter->first);
     task->success();
-    status->result = VD_AGENT_FILE_XFER_STATUS_SUCCESS;
+    status.common.result = VD_AGENT_FILE_XFER_STATUS_SUCCESS;
 
 fin:
     _tasks.erase(iter);
@@ -252,17 +252,17 @@ void FileXfer::handle_status(VDAgentFileXferStatusMessage* status)
     _tasks.erase(iter);
 }
 
-bool FileXfer::dispatch(VDAgentMessage* msg, VDAgentFileXferStatusMessage* status)
+bool FileXfer::dispatch(VDAgentMessage* msg, AgentFileXferStatusMessageFull& status, size_t& status_size)
 {
     bool ret = false;
 
     switch (msg->type) {
     case VD_AGENT_FILE_XFER_START:
-        handle_start((VDAgentFileXferStartMessage*)msg->data, status);
+        handle_start((VDAgentFileXferStartMessage*)msg->data, status, status_size);
         ret = true;
         break;
     case VD_AGENT_FILE_XFER_DATA:
-        ret = handle_data((VDAgentFileXferDataMessage*)msg->data, status);
+        ret = handle_data((VDAgentFileXferDataMessage*)msg->data, status, status_size);
         break;
     case VD_AGENT_FILE_XFER_STATUS:
         handle_status((VDAgentFileXferStatusMessage*)msg->data);

@@ -20,6 +20,7 @@
 
 #include <map>
 #include <memory>
+#include <common/agent.h>
 #include "vdcommon.h"
 
 struct FileXferTask {
@@ -46,12 +47,12 @@ typedef std::map<uint32_t, std::shared_ptr<FileXferTask> > FileXferTasks;
 class FileXfer {
 public:
     ~FileXfer();
-    bool dispatch(VDAgentMessage* msg, VDAgentFileXferStatusMessage* status);
+    bool dispatch(VDAgentMessage* msg, AgentFileXferStatusMessageFull& status, size_t& status_size);
     void reset();
 
 private:
-    void handle_start(VDAgentFileXferStartMessage* start, VDAgentFileXferStatusMessage* status);
-    bool handle_data(VDAgentFileXferDataMessage* data, VDAgentFileXferStatusMessage* status);
+    void handle_start(VDAgentFileXferStartMessage* start, AgentFileXferStatusMessageFull& status, size_t& status_size);
+    bool handle_data(VDAgentFileXferDataMessage* data, AgentFileXferStatusMessageFull& status, size_t& status_size);
     void handle_status(VDAgentFileXferStatusMessage* status);
     bool g_key_get_string(char* data, const char* group, const char* key, char* value,
                                         unsigned vsize);

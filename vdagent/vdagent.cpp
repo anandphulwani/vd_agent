@@ -846,6 +846,7 @@ bool VDAgent::send_announce_capabilities(bool request)
     VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_SPARSE_MONITORS_CONFIG);
     VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_GUEST_LINEEND_CRLF);
     VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_MAX_CLIPBOARD);
+    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_FILE_XFER_DETAILED_ERRORS);
     vd_printf("Sending capabilities:");
     for (uint32_t i = 0 ; i < caps_size; ++i) {
         vd_printf("%X", caps->caps[i]);
@@ -1339,22 +1340,30 @@ void VDAgent::dispatch_message(VDAgentMessage* msg, uint32_t port)
         res = handle_announce_capabilities((VDAgentAnnounceCapabilities*)msg->data, msg->size);
         break;
     case VD_AGENT_FILE_XFER_START: {
-        VDAgentFileXferStatusMessage status;
+        AgentFileXferStatusMessageFull status;
+        size_t status_size = sizeof(status.common);
         if (_session_is_locked) {
             VDAgentFileXferStartMessage *s = (VDAgentFileXferStartMessage *)msg->data;
-            status.id = s->id;
-            status.result = VD_AGENT_FILE_XFER_STATUS_ERROR;
-            vd_printf("Fail to start file-xfer %u due: Locked session", status.id);
-            write_message(VD_AGENT_FILE_XFER_STATUS, sizeof(status), &status);
-        } else if (_file_xfer.dispatch(msg, &status)) {
-            write_message(VD_AGENT_FILE_XFER_STATUS, sizeof(status), &status);
+            status.common.id = s->id;
+            status.common.result = VD_AGENT_FILE_XFER_STATUS_ERROR;
+            vd_printf("Fail to start file-xfer %u due: Locked session", status.common.id);
+            agent_prepare_filexfer_status(&status, &status_size,
+                                          _client_caps.data(), _client_caps.size());
+            write_message(VD_AGENT_FILE_XFER_STATUS, status_size, &status);
+        } else if (_file_xfer.dispatch(msg, status, status_size)) {
+            agent_prepare_filexfer_status(&status, &status_size,
+                                          _client_caps.data(), _client_caps.size());
+            write_message(VD_AGENT_FILE_XFER_STATUS, status_size, &status);
         }
         break;
     }
     case VD_AGENT_FILE_XFER_STATUS:
     case VD_AGENT_FILE_XFER_DATA: {
-        VDAgentFileXferStatusMessage status;
-        if (_file_xfer.dispatch(msg, &status)) {
+        AgentFileXferStatusMessageFull status;
+        size_t status_size = sizeof(status.common);
+        if (_file_xfer.dispatch(msg, status, status_size)) {
+            agent_prepare_filexfer_status(&status, &status_size,
+                                          _client_caps.data(), _client_caps.size());
             write_message(VD_AGENT_FILE_XFER_STATUS, sizeof(status), &status);
         }
         break;
