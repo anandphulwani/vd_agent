@@ -113,6 +113,9 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
         return;
     }
     if (free_bytes.QuadPart < file_size) {
+        status.common.result = VD_AGENT_FILE_XFER_STATUS_NOT_ENOUGH_SPACE;
+        status.not_enough_space.disk_free_space = free_bytes.QuadPart;
+        status_size = sizeof(status.common) + sizeof(status.not_enough_space);
         vd_printf("insufficient disk space %" PRIu64, free_bytes.QuadPart);
         return;
     }
