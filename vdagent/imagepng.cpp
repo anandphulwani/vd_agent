@@ -29,7 +29,7 @@ public:
     PngCoder() {};
     size_t get_dib_size(const uint8_t *data, size_t size);
     void get_dib_data(uint8_t *dib, const uint8_t *data, size_t size);
-    uint8_t *from_bitmap(const BITMAPINFO& info, const void *bits, ssize_t &size);
+    uint8_t *from_bitmap(const BITMAPINFO& info, const void *bits, intptr_t&size);
 private:
     size_t convert_to_dib(uint8_t *out_buf, const uint8_t *data, size_t size);
 };
@@ -271,7 +271,7 @@ void PngCoder::get_dib_data(uint8_t *dib, const uint8_t *data, size_t size)
     convert_to_dib(dib, data, size);
 }
 
-uint8_t *PngCoder::from_bitmap(const BITMAPINFO& bmp_info, const void *bits, ssize_t &size)
+uint8_t *PngCoder::from_bitmap(const BITMAPINFO& bmp_info, const void *bits, intptr_t&size)
 {
     // this vector is here to avoid leaking resources if libpng use setjmp/longjmp
     std::vector<png_color> palette;

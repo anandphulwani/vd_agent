@@ -1102,7 +1102,7 @@ bool VDAgent::handle_clipboard_request(const VDAgentClipboardRequest* clipboard_
     UINT format;
     HANDLE clip_data;
     uint8_t* new_data = NULL;
-    ssize_t new_size = 0;
+    intptr_t new_size = 0;
     size_t len = 0;
     VDAgentClipboard* clipboard = NULL;
 
@@ -1145,7 +1145,7 @@ bool VDAgent::handle_clipboard_request(const VDAgentClipboardRequest* clipboard_
     }
     if ((_max_clipboard != -1) && (new_size > _max_clipboard)) {
         vd_printf("clipboard is too large (%" PRIdPTR " > %d), discarding",
-                  (intptr_t) new_size, _max_clipboard);
+                  new_size, _max_clipboard);
         goto handle_clipboard_request_fail;
     }
 
