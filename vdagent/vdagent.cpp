@@ -28,6 +28,7 @@
 #include <queue>
 #include <set>
 #include <vector>
+#include <cinttypes>
 
 #define VD_AGENT_LOG_PATH       TEXT("%svdagent.log")
 #define VD_AGENT_WINCLASS_NAME  TEXT("VDAGENT")
@@ -1101,7 +1102,7 @@ bool VDAgent::handle_clipboard_request(const VDAgentClipboardRequest* clipboard_
     UINT format;
     HANDLE clip_data;
     uint8_t* new_data = NULL;
-    long new_size = 0;
+    ssize_t new_size = 0;
     size_t len = 0;
     VDAgentClipboard* clipboard = NULL;
 
@@ -1143,8 +1144,8 @@ bool VDAgent::handle_clipboard_request(const VDAgentClipboardRequest* clipboard_
         goto handle_clipboard_request_fail;
     }
     if ((_max_clipboard != -1) && (new_size > _max_clipboard)) {
-        vd_printf("clipboard is too large (%ld > %d), discarding",
-                  new_size, _max_clipboard);
+        vd_printf("clipboard is too large (%" PRIdPTR " > %d), discarding",
+                  (intptr_t) new_size, _max_clipboard);
         goto handle_clipboard_request_fail;
     }
 
