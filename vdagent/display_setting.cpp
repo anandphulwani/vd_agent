@@ -290,7 +290,7 @@ bool DisplaySetting::disable_wallpaper()
 
 static bool RegReadString(HKEY key, const TCHAR *name, TCHAR *buffer, size_t buffer_len)
 {
-    DWORD value_size = buffer_len * sizeof(buffer[0]);
+    DWORD value_size = (DWORD) (buffer_len * sizeof(buffer[0]));
     DWORD value_type;
     LONG status;
 
