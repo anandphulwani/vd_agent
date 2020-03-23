@@ -36,7 +36,7 @@ private:
 
 struct ReadBufferIo {
     const uint8_t *buf;
-    uint32_t pos, size;
+    size_t pos, size;
     ReadBufferIo(const uint8_t *_buf, uint32_t _size):
         buf(_buf), pos(0), size(_size)
     {}
