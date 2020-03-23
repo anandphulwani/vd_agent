@@ -86,7 +86,7 @@ void FileXfer::handle_start(VDAgentFileXferStartMessage* start,
     uint64_t file_size;
     HANDLE handle;
     AsUser as_user;
-    int wlen;
+    size_t wlen;
 
     status->id = start->id;
     status->result = VD_AGENT_FILE_XFER_STATUS_ERROR;
