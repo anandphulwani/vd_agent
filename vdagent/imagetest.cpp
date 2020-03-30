@@ -30,7 +30,7 @@ save_dib_to_file(ImageCoder& coder, const uint8_t *raw_dib, const char *filename
     const BITMAPINFO& info(*(BITMAPINFO*) raw_dib);
     const uint8_t *raw_bits = &raw_dib[sizeof(BITMAPINFOHEADER) + 4 * info.bmiHeader.biClrUsed];
 
-    intptr_t size = 0;
+    long size = 0;
     uint8_t *raw_file = coder.from_bitmap(info, raw_bits, size);
     assert(raw_file && size > 0);
 

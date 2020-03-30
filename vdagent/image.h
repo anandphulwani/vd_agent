@@ -25,7 +25,7 @@ public:
     virtual ~ImageCoder() {}
     virtual size_t get_dib_size(const uint8_t *data, size_t size)=0;
     virtual void get_dib_data(uint8_t *dib, const uint8_t *data, size_t size)=0;
-    virtual uint8_t *from_bitmap(const BITMAPINFO& info, const void *bits, intptr_t&size)=0;
+    virtual uint8_t *from_bitmap(const BITMAPINFO& info, const void *bits, long &size)=0;
 private:
     ImageCoder(const ImageCoder& rhs);
     void operator=(const ImageCoder &rhs);
@@ -61,7 +61,7 @@ HANDLE get_image_handle(const VDAgentClipboard& clipboard, uint32_t size, UINT& 
  * @param[out] new_size           size of returned data
  */
 uint8_t* get_raw_clipboard_image(const VDAgentClipboardRequest& clipboard_request,
-                                 HANDLE clip_data, intptr_t& new_size);
+                                 HANDLE clip_data, long& new_size);
 
 /**
  * Free data returned by get_raw_clipboard_image

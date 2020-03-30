@@ -64,7 +64,7 @@ HANDLE get_image_handle(const VDAgentClipboard& clipboard, uint32_t size, UINT& 
 }
 
 uint8_t* get_raw_clipboard_image(const VDAgentClipboardRequest& clipboard_request,
-                                 HANDLE clip_data, intptr_t& new_size)
+                                 HANDLE clip_data, long& new_size)
 {
     new_size = 0;
 
@@ -133,7 +133,7 @@ public:
     BitmapCoder() {};
     size_t get_dib_size(const uint8_t *data, size_t size);
     void get_dib_data(uint8_t *dib, const uint8_t *data, size_t size);
-    uint8_t *from_bitmap(const BITMAPINFO& info, const void *bits, intptr_t&size);
+    uint8_t *from_bitmap(const BITMAPINFO& info, const void *bits, long &size);
 };
 
 size_t BitmapCoder::get_dib_size(const uint8_t *data, size_t size)
@@ -150,7 +150,7 @@ void BitmapCoder::get_dib_data(uint8_t *dib, const uint8_t *data, size_t size)
     memcpy(dib, data + (size - new_size), new_size);
 }
 
-uint8_t *BitmapCoder::from_bitmap(const BITMAPINFO& info, const void *bits, intptr_t&size)
+uint8_t *BitmapCoder::from_bitmap(const BITMAPINFO& info, const void *bits, long &size)
 {
     BITMAPFILEHEADER file_hdr;
 
