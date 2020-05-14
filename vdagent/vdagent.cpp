@@ -28,6 +28,7 @@
 #include <queue>
 #include <set>
 #include <vector>
+#include <array>
 
 #define VD_AGENT_LOG_PATH       TEXT("%svdagent.log")
 #define VD_AGENT_WINCLASS_NAME  TEXT("VDAGENT")
@@ -161,6 +162,7 @@ private:
 
     int32_t _max_clipboard;
     std::vector<uint32_t> _client_caps;
+    std::array<uint32_t, VD_AGENT_CAPS_SIZE> _final_caps;
 
     std::set<uint32_t> _grab_types;
 
@@ -813,6 +815,18 @@ void VDAgent::load_display_setting()
     _display_setting.load();
 }
 
+static const uint16_t supported_caps[] = {
+    VD_AGENT_CAP_MOUSE_STATE,
+    VD_AGENT_CAP_MONITORS_CONFIG,
+    VD_AGENT_CAP_REPLY,
+    VD_AGENT_CAP_DISPLAY_CONFIG,
+    VD_AGENT_CAP_CLIPBOARD_BY_DEMAND,
+    VD_AGENT_CAP_SPARSE_MONITORS_CONFIG,
+    VD_AGENT_CAP_GUEST_LINEEND_CRLF,
+    VD_AGENT_CAP_MAX_CLIPBOARD,
+    VD_AGENT_CAP_FILE_XFER_DETAILED_ERRORS,
+};
+
 bool VDAgent::send_announce_capabilities(bool request)
 {
     DWORD msg_size;
@@ -838,15 +852,9 @@ bool VDAgent::send_announce_capabilities(bool request)
     caps = (VDAgentAnnounceCapabilities*)caps_msg->data;
     caps->request = request;
     memset(caps->caps, 0, VD_AGENT_CAPS_BYTES);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_MOUSE_STATE);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_MONITORS_CONFIG);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_REPLY);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_DISPLAY_CONFIG);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_CLIPBOARD_BY_DEMAND);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_SPARSE_MONITORS_CONFIG);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_GUEST_LINEEND_CRLF);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_MAX_CLIPBOARD);
-    VD_AGENT_SET_CAPABILITY(caps->caps, VD_AGENT_CAP_FILE_XFER_DETAILED_ERRORS);
+    for (auto cap : supported_caps) {
+        VD_AGENT_SET_CAPABILITY(caps->caps, cap);
+    }
     vd_printf("Sending capabilities:");
     for (uint32_t i = 0 ; i < caps_size; ++i) {
         vd_printf("%X", caps->caps[i]);
@@ -865,6 +873,12 @@ bool VDAgent::handle_announce_capabilities(const VDAgentAnnounceCapabilities* an
         vd_printf("%X", announce_capabilities->caps[i]);
     }
     _client_caps.assign(announce_capabilities->caps, announce_capabilities->caps + caps_size);
+
+    for (auto cap : supported_caps) {
+        if (VD_AGENT_HAS_CAPABILITY(announce_capabilities->caps, caps_size, cap)) {
+            VD_AGENT_SET_CAPABILITY(_final_caps.data(), cap);
+        }
+    }
 
     if (has_capability(VD_AGENT_CAP_MONITORS_CONFIG_POSITION))
         _desktop_layout->set_position_configurable(true);
@@ -1253,7 +1267,7 @@ void VDAgent::dispatch_message(VDAgentMessage* msg, uint32_t port)
     bool res = true;
 
     // check message
-    switch (agent_check_message(msg, msg->data, _client_caps.data(), _client_caps.size())) {
+    switch (agent_check_message(msg, msg->data, _final_caps.data(), _final_caps.size())) {
     case AGENT_CHECK_WRONG_PROTOCOL_VERSION:
         vd_printf("Invalid protocol %u", msg->protocol);
         _running = false;
