@@ -1348,6 +1348,7 @@ void VDAgent::dispatch_message(VDAgentMessage* msg, uint32_t port)
     }
     case VD_AGENT_CLIENT_DISCONNECTED:
         vd_printf("Client disconnected, resetting agent state");
+        cleanup_in_msg();
         set_control_event(CONTROL_RESET);
         break;
     case VD_AGENT_MAX_CLIPBOARD:
