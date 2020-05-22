@@ -299,3 +299,20 @@ bool DesktopLayout::init_dev_mode(LPCTSTR dev_name, DEVMODE* dev_mode, DisplayMo
     mode->_height = dev_mode->dmPelsHeight;
     return true;
 }
+
+void DesktopLayout::set_display_depth(uint32_t depth)
+{
+    bool changed = false;
+
+    // setting depth for all the monitors, including unattached ones
+    for (DisplayMode* mode : _displays) {
+        if (mode) {
+            mode->set_depth(depth);
+            changed = true;
+        }
+    }
+
+    if (changed) {
+        set_displays();
+    }
+}

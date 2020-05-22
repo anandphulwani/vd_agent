@@ -113,7 +113,6 @@ private:
     bool init_vio_serial();
     void close_vio_serial();
     bool send_input();
-    void set_display_depth(uint32_t depth);
     void load_display_setting();
     bool send_announce_capabilities(bool request);
     void cleanup_in_msg();
@@ -791,25 +790,6 @@ HGLOBAL VDAgent::utf8_alloc(LPCSTR data, int size)
     return handle;
 }
 
-void VDAgent::set_display_depth(uint32_t depth)
-{
-    size_t display_count;
-
-    display_count = _desktop_layout->get_display_count();
-
-    // setting depth for all the monitors, including unattached ones
-    for (uint32_t i = 0; i < display_count; i++) {
-        DisplayMode* mode = _desktop_layout->get_display(i);
-        if (mode) {
-            mode->set_depth(depth);
-        }
-    }
-
-    if (display_count) {
-        _desktop_layout->set_displays();
-    }
-}
-
 void VDAgent::load_display_setting()
 {
     _display_setting.load();
@@ -911,7 +891,7 @@ bool VDAgent::handle_display_config(const VDAgentDisplayConfig* display_config, 
     _display_setting.set(disp_setting_opts);
 
     if (display_config->flags & VD_AGENT_DISPLAY_CONFIG_FLAG_SET_COLOR_DEPTH) {
-        set_display_depth(display_config->depth);
+        _desktop_layout->set_display_depth(display_config->depth);
     }
 
     msg_size = VD_MESSAGE_HEADER_SIZE + sizeof(VDAgentReply);

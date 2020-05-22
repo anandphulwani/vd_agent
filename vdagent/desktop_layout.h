@@ -75,6 +75,7 @@ public:
     DWORD get_total_width() { return _total_width;}
     DWORD get_total_height() { return _total_height;}
     void set_position_configurable(bool flag);
+    void set_display_depth(uint32_t depth);
 private:
     void clean_displays();
     void normalize_displays_pos();
