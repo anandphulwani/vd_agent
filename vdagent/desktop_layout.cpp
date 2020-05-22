@@ -188,15 +188,12 @@ void DesktopLayout::set_position_configurable(bool flag)
 // the virtual desktop. Caller is responsible to lock() & unlock().
 void DesktopLayout::normalize_displays_pos()
 {
-    Displays::iterator iter;
-    DisplayMode* mode;
     LONG min_x = 0;
     LONG min_y = 0;
     LONG max_x = 0;
     LONG max_y = 0;
 
-    for (iter = _displays.begin(); iter != _displays.end(); iter++) {
-        mode = *iter;
+    for (DisplayMode *mode : _displays) {
         if (mode && mode->_attached) {
             min_x = min(min_x, mode->_pos_x);
             min_y = min(min_y, mode->_pos_y);
@@ -205,8 +202,7 @@ void DesktopLayout::normalize_displays_pos()
         }
     }
     if (min_x || min_y) {
-        for (iter = _displays.begin(); iter != _displays.end(); iter++) {
-            mode = *iter;
+        for (DisplayMode *mode : _displays) {
             if (mode) {
                 mode->move_pos(-min_x, -min_y);
             }
