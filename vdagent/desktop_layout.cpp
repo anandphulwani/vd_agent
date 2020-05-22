@@ -48,6 +48,24 @@ DesktopLayout::~DesktopLayout()
     delete _display_config;
 }
 
+static bool
+get_next_display(DWORD &dev_id, DISPLAY_DEVICE &dev_info)
+{
+    if (dev_id == 0) {
+        ZeroMemory(&dev_info, sizeof(dev_info));
+        dev_info.cb = sizeof(dev_info);
+    }
+
+    while (EnumDisplayDevices(NULL, dev_id, &dev_info, 0)) {
+        dev_id++;
+        if (dev_info.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
+            continue;
+        }
+        return true;
+    }
+    return false;
+}
+
 void DesktopLayout::get_displays()
 {
     DISPLAY_DEVICE dev_info;
@@ -62,15 +80,9 @@ void DesktopLayout::get_displays()
     }
     _display_config->update_config_path();
     clean_displays();
-    ZeroMemory(&dev_info, sizeof(dev_info));
-    dev_info.cb = sizeof(dev_info);
     ZeroMemory(&mode, sizeof(mode));
     mode.dmSize = sizeof(mode);
-    while (EnumDisplayDevices(NULL, dev_id, &dev_info, 0)) {
-        dev_id++;
-        if (dev_info.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
-            continue;
-        }
+    while (get_next_display(dev_id, dev_info)) {
         size_t size = _displays.size();
         if (!wcsstr(dev_info.DeviceString, L"QXL")) {
             display_id = (DWORD)size;
@@ -123,8 +135,6 @@ void DesktopLayout::set_displays()
         return;
     }
     _display_config->update_config_path();
-    ZeroMemory(&dev_info, sizeof(dev_info));
-    dev_info.cb = sizeof(dev_info);
     ZeroMemory(&dev_mode, sizeof(dev_mode));
     dev_mode.dmSize = sizeof(dev_mode);
 
@@ -133,11 +143,7 @@ void DesktopLayout::set_displays()
     LONG normal_x = primary ? primary->get_pos_x() : 0;
     LONG normal_y = primary ? primary->get_pos_y() : 0;
 
-    while (EnumDisplayDevices(NULL, dev_id, &dev_info, 0)) {
-        dev_id++;
-        if (dev_info.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
-            continue;
-        }
+    while (get_next_display(dev_id, dev_info)) {
         bool is_qxl = !!wcsstr(dev_info.DeviceString, L"QXL");
         if (is_qxl && !get_qxl_device_id(dev_info.DeviceKey, &display_id)) {
             vd_printf("get_qxl_device_id failed %S", dev_info.DeviceKey);
@@ -213,13 +219,7 @@ bool DesktopLayout::consistent_displays()
     int non_qxl_count = 0;
     int qxl_count = 0;
 
-    ZeroMemory(&dev_info, sizeof(dev_info));
-    dev_info.cb = sizeof(dev_info);
-    while (EnumDisplayDevices(NULL, dev_id, &dev_info, 0)) {
-        dev_id++;
-        if (dev_info.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
-            continue;
-        }
+    while (get_next_display(dev_id, dev_info)) {
         if (wcsstr(dev_info.DeviceString, L"QXL")) {
             qxl_count++;
         } else {
