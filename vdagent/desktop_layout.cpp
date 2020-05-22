@@ -56,9 +56,8 @@ void DesktopLayout::get_displays()
     DWORD dev_id = 0;
     bool attached;
 
-    lock();
+    MutexLocker lock(_mutex);
     if (!consistent_displays()) {
-        unlock();
         return;
     }
     _display_config->update_config_path();
@@ -94,7 +93,6 @@ void DesktopLayout::get_displays()
         _display_config->update_monitor_config(dev_info.DeviceName, _displays[display_id], &mode);
     }
     normalize_displays_pos();
-    unlock();
 }
 
 DisplayMode * DesktopLayout::get_primary_display()
@@ -120,9 +118,8 @@ void DesktopLayout::set_displays()
     DWORD display_id = 0;
     int dev_sets = 0;
 
-    lock();
+    MutexLocker lock(_mutex);
     if (!consistent_displays()) {
-        unlock();
         return;
     }
     _display_config->update_config_path();
@@ -171,7 +168,6 @@ void DesktopLayout::set_displays()
         _display_config->update_display_settings();
         normalize_displays_pos();
     }
-    unlock();
 }
 
 void DesktopLayout::set_position_configurable(bool flag) {
@@ -236,7 +232,7 @@ bool DesktopLayout::consistent_displays()
 
 void DesktopLayout::clean_displays()
 {
-    lock();
+    MutexLocker lock(_mutex);
     _total_width = 0;
     _total_height = 0;
     while (!_displays.empty()) {
@@ -244,7 +240,6 @@ void DesktopLayout::clean_displays()
         _displays.pop_back();
         delete mode;
     }
-    unlock();
 }
 
 bool DesktopLayout::is_attached(LPCTSTR dev_name)
