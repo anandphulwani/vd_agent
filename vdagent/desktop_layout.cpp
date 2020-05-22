@@ -61,6 +61,9 @@ get_next_display(DWORD &dev_id, DISPLAY_DEVICE &dev_info)
         if (dev_info.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
             continue;
         }
+        if (wcsstr(dev_info.DeviceString, L"Citrix Indirect Display")) {
+            continue;
+        }
         return true;
     }
     return false;
