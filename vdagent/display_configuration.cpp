@@ -840,7 +840,7 @@ bool CCD::update_mode_position(LPCTSTR device_name, DEVMODE* dev_mode)
 
     mode->sourceMode.position.x = dev_mode->dmPosition.x;
     mode->sourceMode.position.y = dev_mode->dmPosition.y;
-    vd_printf("%S updated path mode to (%lu, %lu) - (%u x%u)",
+    vd_printf("%S updated path mode to (%lu, %lu) - (%ux%u)",
         device_name,
         mode->sourceMode.position.x, mode->sourceMode.position.y,
         mode->sourceMode.width, mode->sourceMode.height);
@@ -858,7 +858,7 @@ bool CCD::update_mode_size(LPCTSTR device_name, DEVMODE* dev_mode)
 
     mode->sourceMode.width = dev_mode->dmPelsWidth;
     mode->sourceMode.height = dev_mode->dmPelsHeight;
-    vd_printf("%S updated path mode to (%lu, %lu - (%u x %u)",
+    vd_printf("%S updated path mode to (%lu, %lu - (%ux%u)",
         device_name,
         mode->sourceMode.position.x, mode->sourceMode.position.y,
         mode->sourceMode.width, mode->sourceMode.height);
