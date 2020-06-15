@@ -179,7 +179,8 @@ void DesktopLayout::set_displays()
     }
 }
 
-void DesktopLayout::set_position_configurable(bool flag) {
+void DesktopLayout::set_position_configurable(bool flag)
+{
     _display_config->set_monitors_config(flag);
 }
 
