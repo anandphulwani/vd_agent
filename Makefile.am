@@ -19,7 +19,7 @@ endif
 
 bin_PROGRAMS = vdagent vdservice
 
-vdagent_LDADD = $(LIBPNG_LIBS) $(ZLIB_LIBS) -lwtsapi32 -lgdi32 -luuid -lole32 -loleaut32 vdagent_rc.$(OBJEXT)
+vdagent_LDADD = $(LIBPNG_LIBS) $(ZLIB_LIBS) -lwtsapi32 -lgdi32 -luuid -lole32 -loleaut32 -lmpr -lshlwapi vdagent_rc.$(OBJEXT)
 vdagent_CXXFLAGS = $(AM_CXXFLAGS) $(LIBPNG_CFLAGS)
 vdagent_LDFLAGS = $(AM_LDFLAGS) -Wl,--subsystem,windows
 vdagent_SOURCES =			\

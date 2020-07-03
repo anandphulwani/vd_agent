@@ -113,6 +113,8 @@ target_link_libraries(vdagent
     uuid
     ole32
     oleaut32
+    mpr
+    shlwapi
     ${COMMSUPPW_LIBRARY}
 )
 

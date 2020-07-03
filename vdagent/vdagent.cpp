@@ -29,6 +29,9 @@
 #include <set>
 #include <vector>
 #include <array>
+#include <shlobj.h>
+#include <shlwapi.h>
+#include <algorithm>
 
 #define VD_AGENT_LOG_PATH       TEXT("%svdagent.log")
 #define VD_AGENT_WINCLASS_NAME  TEXT("VDAGENT")
@@ -52,6 +55,7 @@ static const VDClipboardFormat clipboard_formats[] = {
     {CF_UNICODETEXT, {VD_AGENT_CLIPBOARD_UTF8_TEXT, 0}},
     //FIXME: support more image types
     {CF_DIB, {VD_AGENT_CLIPBOARD_IMAGE_PNG, VD_AGENT_CLIPBOARD_IMAGE_BMP, 0}},
+    {CF_HDROP, {VD_AGENT_CLIPBOARD_FILE_LIST, 0}},
 };
 
 #define clipboard_formats_count SPICE_N_ELEMENTS(clipboard_formats)
@@ -166,6 +170,8 @@ private:
     std::set<uint32_t> _grab_types;
 
     VDLog* _log;
+
+    UINT _cb_format_drop_effect;
 };
 
 VDAgent* VDAgent::_singleton = NULL;
@@ -337,6 +343,7 @@ bool VDAgent::run()
     send_announce_capabilities(true);
     vd_printf("Connected to server");
 
+    _cb_format_drop_effect = RegisterClipboardFormat(CFSTR_PREFERREDDROPEFFECT);
     while (_running) {
         input_desktop_message_loop();
         if (_clipboard_owner == owner_guest) {
@@ -716,6 +723,159 @@ bool VDAgent::handle_mon_config(const VDAgentMonitorsConfig* mon_config, uint32_
     return true;
 }
 
+static std::wstring spice_webdav_get_drive_letter()
+{
+    std::wstring drive(L"Z:");
+    static const wchar_t spice_folder[] = L"\\\\localhost@9843\\DavWWWRoot";
+    wchar_t remote[MAX_PATH];
+
+    DWORD drives = GetLogicalDrives();
+
+    /* spice-webdavd assigns drive letter from the end of the alphabet */
+    for (int i = 25; i >= 0; i--) {
+        int mask = 1 << i;
+        if (drives & mask) {
+            drive[0] = 'A' + i;
+            DWORD size = SPICE_N_ELEMENTS(remote);
+
+            if (WNetGetConnection(drive.c_str(), remote, &size) == NO_ERROR &&
+                _wcsicmp(remote, spice_folder) == 0) {
+                return drive;
+            }
+        }
+    }
+
+    return L"";
+}
+
+static std::wstring utf8_to_wchar(LPCSTR utf8)
+{
+    int len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, nullptr, 0);
+    if (len == 0) {
+        return {};
+    }
+
+    std::wstring wchr;
+    wchr.resize(len);
+
+    len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, &wchr[0], len);
+    if (len == 0) {
+        DWORD err = GetLastError();
+        vd_printf("err converting to wchar: %lu", err);
+        return {};
+    }
+    wchr.resize(len-1);
+
+    return wchr;
+}
+
+static std::vector<wchar_t> paths_to_wchar_array(const std::vector<std::wstring> &paths)
+{
+    std::vector<wchar_t> arr;
+
+    for (auto path: paths) {
+        arr.insert(arr.end(), path.begin(), path.end());
+        arr.push_back(L'\0');
+    }
+    /* Windows requires the array to be double-NULL-terminated */
+    arr.push_back(L'\0');
+
+    return arr;
+}
+
+static std::vector<wchar_t> clipboard_data_to_path_array(
+    std::wstring drive, LPCSTR data, uint32_t size, DWORD &drop_effect_out)
+{
+    drop_effect_out = DROPEFFECT_NONE;
+
+    if (!data || size < 1) {
+        return {};
+    }
+
+    if (data[size-1]) {
+        vd_printf("received list of paths that is not null-terminated");
+        return {};
+    }
+
+    if (!strcmp(data, "copy")) {
+        drop_effect_out = DROPEFFECT_COPY;
+    } else if (!strcmp(data, "cut")) {
+        drop_effect_out = DROPEFFECT_MOVE;
+    } else {
+        vd_printf("first line of path list must specify clipboard action");
+        return {};
+    }
+    /* skip the action line, since we're only interested in
+     * the actual paths from this point forward  */
+    int len = strlen(data) + 1;
+    data += len;
+    size -= len;
+
+    wchar_t buf[MAX_PATH];
+    std::vector<std::wstring> paths;
+
+    for (LPCSTR item = data; item < data + size; item += strlen(item) + 1) {
+        auto wpath = utf8_to_wchar(item);
+
+        std::replace(wpath.begin(), wpath.end(), L'/', L'\\');
+        if (!wpath.length() || !PathCombine(buf, drive.c_str(), wpath.c_str())) {
+            continue;
+        }
+
+        paths.push_back(std::wstring(buf));
+    }
+    vd_printf("received %zu paths", paths.size());
+
+    return paths_to_wchar_array(paths);
+}
+
+static HANDLE get_dropfiles_handle(const std::vector<wchar_t>& path_arr)
+{
+    HANDLE clip_data = GlobalAlloc(GHND, sizeof(DROPFILES) +
+        path_arr.size() * sizeof(wchar_t));
+
+    if (!clip_data) {
+        return NULL;
+    }
+
+    uint8_t *d = (uint8_t *)GlobalLock(clip_data);
+    LPDROPFILES drop = (LPDROPFILES)d;
+    if (!drop) {
+        GlobalFree(clip_data);
+        return NULL;
+    }
+
+    drop->pFiles = sizeof(DROPFILES); /* offset of the file array */
+    drop->pt.x = 0; /* drop point, not used */
+    drop->pt.y = 0;
+    drop->fNC = FALSE; /* related to pt, not used */
+    drop->fWide = TRUE; /* contains wide chars */
+    std::copy(path_arr.begin(), path_arr.end(), (wchar_t *)(d + sizeof(DROPFILES)));
+
+    GlobalUnlock(clip_data);
+
+    return clip_data;
+}
+
+static HANDLE get_drop_effect_handle(DWORD effect)
+{
+    HANDLE clip_data = GlobalAlloc(GHND, sizeof(DWORD));
+
+    if (!clip_data) {
+        return NULL;
+    }
+
+    DWORD *e = (DWORD *)GlobalLock(clip_data);
+    if (!e) {
+        GlobalFree(clip_data);
+        return NULL;
+    }
+    *e = effect;
+    GlobalUnlock(clip_data);
+
+    return clip_data;
+}
+
 bool VDAgent::handle_clipboard(const VDAgentClipboard* clipboard, uint32_t size)
 {
     HANDLE clip_data;
@@ -738,6 +898,21 @@ bool VDAgent::handle_clipboard(const VDAgentClipboard* clipboard, uint32_t size)
     case VD_AGENT_CLIPBOARD_IMAGE_BMP:
         clip_data = get_image_handle(*clipboard, size, format);
         break;
+    case VD_AGENT_CLIPBOARD_FILE_LIST: {
+        /* FIXME: does this block? cache it? */
+        std::wstring drive = spice_webdav_get_drive_letter();
+        if (drive.empty()) {
+            vd_printf("Spice webdav not mapped");
+            goto fin;
+        }
+        DWORD drop_effect;
+        std::vector<wchar_t> path_arr = clipboard_data_to_path_array(drive,
+            (LPCSTR)clipboard->data, size, drop_effect);
+        SetClipboardData(_cb_format_drop_effect, get_drop_effect_handle(drop_effect));
+        clip_data = get_dropfiles_handle(path_arr);
+        format = CF_HDROP;
+        break;
+    }
     default:
         vd_printf("Unsupported clipboard type %u", clipboard->type);
         goto fin;
@@ -979,6 +1154,10 @@ void VDAgent::on_clipboard_grab()
         return;
     }
     for (unsigned int i = 0; i < clipboard_formats_count; i++) {
+        if (clipboard_formats[i].format == CF_HDROP) {
+            /* only unidirectional support atm */
+            continue;
+        }
         if (IsClipboardFormatAvailable(clipboard_formats[i].format)) {
             for (const uint32_t* ptype = clipboard_formats[i].types; *ptype; ptype++) {
                 types[count++] = *ptype;
@@ -1077,6 +1256,9 @@ bool VDAgent::handle_clipboard_grab(const VDAgentClipboardGrab* clipboard_grab, 
         vd_printf("No supported clipboard types in client grab");
         return true;
     }
+    if (grab_formats.find(CF_HDROP) != grab_formats.end()) {
+        SetClipboardData(_cb_format_drop_effect, NULL);
+    }
     CloseClipboard();
     set_clipboard_owner(owner_client);
     return true;
@@ -1101,6 +1283,10 @@ bool VDAgent::handle_clipboard_request(const VDAgentClipboardRequest* clipboard_
     }
     if (!(format = get_clipboard_format(clipboard_request->type))) {
         vd_printf("Unsupported clipboard type %u", clipboard_request->type);
+        return false;
+    }
+    if (format == CF_HDROP) {
+        /* only unidirectional support atm */
         return false;
     }
     // on encoding only, we use HBITMAP to keep the correct palette
@@ -1197,6 +1383,11 @@ uint32_t VDAgent::get_clipboard_format(uint32_t type) const
 uint32_t VDAgent::get_clipboard_type(uint32_t format) const
 {
     const uint32_t* types = NULL;
+
+    if (format == _cb_format_drop_effect) {
+        /* type is the same for both of these formats */
+        format = CF_HDROP;
+    }
 
     for (unsigned int i = 0; i < clipboard_formats_count && !types; i++) {
         if (clipboard_formats[i].format == format) {
