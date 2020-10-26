@@ -10,7 +10,8 @@ install:
 - mkdir build32
 - mkdir build64
 
-- choco install --timeout 600 -y imagemagick.tool
+- choco install --timeout 600 -y imagemagick
+- refreshenv
 
 - cd %VCPKG_ROOT%
 - git pull
