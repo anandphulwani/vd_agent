@@ -103,8 +103,27 @@ dnl ---------------------------------------------------------------------------
 dnl - Check library dependencies
 dnl ---------------------------------------------------------------------------
 
-PKG_CHECK_MODULES_STATIC(LIBPNG, [libpng])
+ACX_SET_VAR(CFLAGS, "$CFLAGS -Wall",
+  ACX_SET_VAR(LDFLAGS, "$LDFLAGS -static",
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]], [[
+      printf("hello");
+      return 0
+    ]])], [], AC_MSG_ERROR([some base static library (possibly pthread) not found]))
+  )
+)
+
 PKG_CHECK_MODULES_STATIC(ZLIB, [zlib])
+ACX_SET_VAR(CFLAGS, "$CFLAGS $ZLIB_CFLAGS -Wall",
+  ACX_SET_VAR(LDFLAGS, "$LDFLAGS -static",
+    ACX_SET_VAR(LIBS, "$LIBS $ZLIB_LIBS",
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <zlib.h>]], [[
+        return !!zlibVersion()
+      ]])], [], AC_MSG_ERROR([static zlib not found]))
+    )
+  )
+)
+
+PKG_CHECK_MODULES_STATIC(LIBPNG, [libpng])
 ACX_SET_VAR(CFLAGS, "$CFLAGS $LIBPNG_CFLAGS -Wall",
   ACX_SET_VAR(LDFLAGS, "$LDFLAGS -static",
     ACX_SET_VAR(LIBS, "$LIBS $LIBPNG_LIBS",
