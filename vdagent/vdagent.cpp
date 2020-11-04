@@ -1027,7 +1027,8 @@ bool VDAgent::handle_announce_capabilities(const VDAgentAnnounceCapabilities* an
     for (uint32_t i = 0 ; i < caps_size; ++i) {
         vd_printf("%X", announce_capabilities->caps[i]);
     }
-    _client_caps.assign(announce_capabilities->caps, announce_capabilities->caps + caps_size);
+    _client_caps.resize(caps_size);
+    memcpy(_client_caps.data(), announce_capabilities->caps, sizeof(uint32_t) * caps_size);
 
     for (auto cap : supported_caps) {
         if (VD_AGENT_HAS_CAPABILITY(announce_capabilities->caps, caps_size, cap)) {
