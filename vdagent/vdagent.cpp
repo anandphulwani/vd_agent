@@ -556,10 +556,9 @@ bool VDAgent::send_input()
 {
     DisplayMode* mode = NULL;
     DWORD mouse_move = 0;
-    DWORD buttons_change = 0;
-    DWORD mouse_wheel = 0;
     bool ret = true;
-    INPUT input;
+    INPUT inputs[3];
+    INPUT *input = &inputs[0];
 
     if (_pending_input) {
         if (KillTimer(_hwnd, VD_TIMER_ID)) {
@@ -580,18 +579,23 @@ bool VDAgent::send_input()
         _desktop_layout->unlock();
         return true;
     }
-    ZeroMemory(&input, sizeof(INPUT));
-    input.type = INPUT_MOUSE;
+    ZeroMemory(&inputs, sizeof(inputs));
+    input->type = INPUT_MOUSE;
     if (_new_mouse.x != _last_mouse.x || _new_mouse.y != _last_mouse.y) {
         DWORD w = _desktop_layout->get_total_width();
         DWORD h = _desktop_layout->get_total_height();
         w = (w > 1) ? w-1 : 1; /* coordinates are 0..w-1, protect w==0 */
         h = (h > 1) ? h-1 : 1; /* coordinates are 0..h-1, protect h==0 */
         mouse_move = MOUSEEVENTF_MOVE;
-        input.mi.dx = (mode->get_pos_x() + _new_mouse.x) * 0xffff / w;
-        input.mi.dy = (mode->get_pos_y() + _new_mouse.y) * 0xffff / h;
+        input->mi.dx = (mode->get_pos_x() + _new_mouse.x) * 0xffff / w;
+        input->mi.dy = (mode->get_pos_y() + _new_mouse.y) * 0xffff / h;
     }
+    input->mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK | mouse_move;
+
     if (_new_mouse.buttons != _last_mouse.buttons) {
+        DWORD buttons_change;
+        DWORD mouse_wheel;
+
         buttons_change = get_buttons_change(VD_AGENT_LBUTTON_MASK,
                                             MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP) |
                          get_buttons_change(VD_AGENT_MBUTTON_MASK,
@@ -602,17 +606,30 @@ bool VDAgent::send_input()
                                          MOUSEEVENTF_WHEEL, 0);
         if (mouse_wheel) {
             if (_new_mouse.buttons & VD_AGENT_UBUTTON_MASK) {
-                input.mi.mouseData = WHEEL_DELTA;
+                input->mi.mouseData = WHEEL_DELTA;
             } else if (_new_mouse.buttons & VD_AGENT_DBUTTON_MASK) {
-                input.mi.mouseData = (DWORD)(-WHEEL_DELTA);
+                input->mi.mouseData = (DWORD)(-WHEEL_DELTA);
             }
         }
+        input->mi.dwFlags |= mouse_wheel | buttons_change;
+
+        auto set_xbutton = [&](DWORD vdagent_mask, DWORD xbutton) {
+            buttons_change = get_buttons_change(vdagent_mask, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP);
+            if (buttons_change && (input->mi.dwFlags & (MOUSEEVENTF_WHEEL|MOUSEEVENTF_XDOWN|MOUSEEVENTF_XUP)) ){
+                ++input;
+                input->type = INPUT_MOUSE;
+            }
+            if (buttons_change) {
+                input->mi.dwFlags |= buttons_change;
+                input->mi.mouseData = xbutton;
+            }
+        };
+        set_xbutton(VD_AGENT_SBUTTON_MASK, XBUTTON1);
+        set_xbutton(VD_AGENT_EBUTTON_MASK, XBUTTON2);
     }
 
-    input.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK | mouse_move |
-                       mouse_wheel | buttons_change;
-
-    if (!SendInput(1, &input, sizeof(INPUT))) {
+    const UINT num_inputs = input - inputs + 1;
+    if (SendInput(num_inputs, inputs, sizeof(INPUT)) < num_inputs) {
         DWORD err = GetLastError();
         // Don't stop agent due to UIPI blocking, which is usually only for specific windows
         // of system security applications (anti-viruses etc.)
