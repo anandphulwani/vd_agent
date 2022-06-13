@@ -1,5 +1,7 @@
 configuration: Release
 
+image: Visual Studio 2019
+
 cache: c:\Tools\vcpkg\installed\
 
 environment:
@@ -14,8 +16,6 @@ install:
 - refreshenv
 
 - cd %VCPKG_ROOT%
-- git pull
-- .\bootstrap-vcpkg.bat
 - vcpkg install libpng:x64-windows-static libpng:x86-windows-static
 
 build_script:
