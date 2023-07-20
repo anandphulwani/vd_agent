@@ -96,6 +96,14 @@ void VDLog::logf(const char *type, const char *function, const char* format, ...
     va_end(args);
     _unlock_file(fh);
     fflush(fh);
+
+    if (fh != stdout) {
+        va_list args2;
+        va_start(args2, format);
+        vprintf(format, args2);
+        va_end(args2);
+        fflush(stdout);
+    }
 }
 
 void log_version()
