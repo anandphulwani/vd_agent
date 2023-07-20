@@ -1912,8 +1912,27 @@ int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_l
 #endif
 {
     parse_cmd(argc, argv);
+    size_t size = sizeof(VDAgentMonitorsConfig) + sizeof(VDAgentMonConfig);
+    char* buffer = new char[size];
+
+    VDAgentMonitorsConfig* mon_config = new (buffer) VDAgentMonitorsConfig;
+    VDAgentMonConfig* mon = new (buffer + sizeof(VDAgentMonitorsConfig)) VDAgentMonConfig;
+
+    mon_config->num_of_monitors = 1;
+    mon_config->flags = 0;
+
+    mon->width = width;
+    mon->height = height;
+    mon->depth = 32;
+    mon->x = 0;
+    mon->y = 0;
+
+    mon_config->monitors[0] = *mon;
+
     VDAgent* vdagent = VDAgent::get();
     vdagent->run();
+    vdagent->set_manual_resolution_from_terminal(mon_config);
+    delete[] buffer;
     delete vdagent;
     return 0;
 }
