@@ -1817,6 +1817,23 @@ LRESULT CALLBACK VDAgent::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARA
     return 0;
 }
 
+static void usage()
+{
+    fprintf(stdout, "resolution-client: A program to set resolution\n"
+                    "Usage: resolution-client [options]...\n"
+                    "Options:\n"
+                    "  -w, --width <value>\n"
+                    "      Set the resolution width\n"
+                    "  -h, --height <value>\n"
+                    "      Set the resolution height\n"
+                    "  -i, --info\n"
+                    "      Set log level to INFO\n"
+                    "  -t, --trace\n"
+                    "      Set log level to TRACE\n"
+                    "  -e, --help\n"
+                    "      Print help and exit\n");
+}
+
 #ifdef __GNUC__
 int main(int argc,char **argv)
 #else
