@@ -112,6 +112,10 @@ void VDLog::logf(const char *type, const char *function, const char* format, ...
     }
 }
 
+void set_log_level(VDLogLevel level) {
+    log_level = level;
+}
+
 void log_version()
 {
     // print same version as resource one

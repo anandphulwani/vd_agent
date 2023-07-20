@@ -58,6 +58,7 @@ typedef enum {
 } VDLogLevel;
 
 extern VDLogLevel log_level;
+void set_log_level(VDLogLevel level);
 
 #define LOG(type, format, ...) do {                                     \
     if (LOG_ ## type >= log_level && LOG_ ## type <= LOG_FATAL) {       \
