@@ -680,7 +680,9 @@ bool VDAgent::set_manual_resolution_from_terminal(const VDAgentMonitorsConfig* m
     bool update_displays(false);
 
     _updating_display_config = true;
+    LOG(TRACE, "Inside set_manual_resolution_from_terminal(SMRFT) Start 01.");
     display_count = _desktop_layout->get_display_count();
+    LOG(TRACE, "SMRFT Step 02.");
 
     for (uint32_t i = 0; i < display_count; i++) {
         DisplayMode* mode = _desktop_layout->get_display(i);
@@ -695,34 +697,42 @@ bool VDAgent::set_manual_resolution_from_terminal(const VDAgentMonitorsConfig* m
         }
         const VDAgentMonConfig* mon = &mon_config->monitors[i];
 
+        LOG(TRACE, "SMRFT Step 03.");
         vd_printf("%d. %u*%u*%u (%d,%d) %u", i, mon->width, mon->height, mon->depth, mon->x,
                   mon->y, !!(mon_config->flags & VD_AGENT_CONFIG_MONITORS_FLAG_USE_POS));
         if (mon->height == 0 && mon->depth == 0) {
+            LOG(TRACE, "SMRFT Step 04.");
             vd_printf("%d. detaching", i);
             update_displays = mode->get_attached() ? true : update_displays;
             mode->set_attached(false);
             continue;
         }
         if (mode->get_height() != mon->height || mode->get_width() != mon->width || mode->get_depth() != mon->depth) {
+            LOG(TRACE, "SMRFT Step 05.");
             mode->set_res(mon->width, mon->height, mon->depth);
             update_displays = true;
         }
         if (mon_config->flags & VD_AGENT_CONFIG_MONITORS_FLAG_USE_POS && (mode->get_pos_x() != mon->x || mode->get_pos_y() != mon->y)) {
+            LOG(TRACE, "SMRFT Step 06.");
             mode->set_pos(mon->x, mon->y);
             update_displays = true;
         }
         if (!mode->get_attached()) {
+            LOG(TRACE, "SMRFT Step 07.");
             mode->set_attached(true);
             update_displays = true;
         }
     }
     if (update_displays) {
+        LOG(TRACE, "SMRFT Step 08, Calling _desktop_layout->set_displays().");
         _desktop_layout->set_displays();
     }
 
     _updating_display_config = false;
     /* refresh again, in case something else changed */
+    LOG(TRACE, "SMRFT Step 09, Calling _desktop_layout->get_displays().");
     _desktop_layout->get_displays();
+    LOG(TRACE, "SMRFT Step 10, Returning true.");
     return true;
 }
 
@@ -1930,8 +1940,11 @@ int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_l
     mon_config->monitors[0] = *mon;
 
     VDAgent* vdagent = VDAgent::get();
+    LOG(TRACE, "Running the agent, calling vdagent->run().");
     vdagent->run();
+    LOG(TRACE, "Calling set_manual_resolution_from_terminal().");
     vdagent->set_manual_resolution_from_terminal(mon_config);
+    LOG(TRACE, "Finished set_manual_resolution_from_terminal().");
     delete[] buffer;
     delete vdagent;
     return 0;
