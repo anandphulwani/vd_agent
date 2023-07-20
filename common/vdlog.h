@@ -50,6 +50,7 @@ private:
 
 typedef enum {
   LOG_DEBUG,
+  LOG_TRACE,
   LOG_INFO,
   LOG_WARN,
   LOG_ERROR,
@@ -70,6 +71,7 @@ static const VDLogLevel log_level = LOG_INFO;
 
 
 #define vd_printf(format, ...) LOG(INFO, format, ## __VA_ARGS__)
+#define LOG_TRACE(format, ...) LOG(TRACE, format, ## __VA_ARGS__)
 #define LOG_INFO(format, ...) LOG(INFO, format, ## __VA_ARGS__)
 #define LOG_WARN(format, ...) LOG(WARN, format, ## __VA_ARGS__)
 #define LOG_ERROR(format, ...) LOG(ERROR, format, ## __VA_ARGS__)
