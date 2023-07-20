@@ -33,6 +33,9 @@
 #include <shlwapi.h>
 #include <algorithm>
 
+static int width;
+static int height;
+
 #define VD_AGENT_LOG_PATH       TEXT("%svdagent.log")
 #define VD_AGENT_WINCLASS_NAME  TEXT("VDAGENT")
 #define VD_INPUT_INTERVAL_MS    20
@@ -77,6 +80,7 @@ public:
     static VDAgent* get();
     ~VDAgent();
     bool run();
+    bool set_manual_resolution_from_terminal(const VDAgentMonitorsConfig* mon_config);
 
 private:
     VDAgent();
@@ -666,6 +670,58 @@ bool VDAgent::handle_mouse_event(const VDAgentMouseState* state)
             _pending_input = true;
         }
     }
+    return true;
+}
+
+bool VDAgent::set_manual_resolution_from_terminal(const VDAgentMonitorsConfig* mon_config)
+{
+    size_t display_count;
+    bool update_displays(false);
+
+    _updating_display_config = true;
+    display_count = _desktop_layout->get_display_count();
+
+    for (uint32_t i = 0; i < display_count; i++) {
+        DisplayMode* mode = _desktop_layout->get_display(i);
+        if (!mode) {
+            continue;
+        }
+        if (i >= mon_config->num_of_monitors) {
+            vd_printf("%d. detached", i);
+            mode->set_attached(false);
+            update_displays = true;
+            continue;
+        }
+        const VDAgentMonConfig* mon = &mon_config->monitors[i];
+
+        vd_printf("%d. %u*%u*%u (%d,%d) %u", i, mon->width, mon->height, mon->depth, mon->x,
+                  mon->y, !!(mon_config->flags & VD_AGENT_CONFIG_MONITORS_FLAG_USE_POS));
+        if (mon->height == 0 && mon->depth == 0) {
+            vd_printf("%d. detaching", i);
+            update_displays = mode->get_attached() ? true : update_displays;
+            mode->set_attached(false);
+            continue;
+        }
+        if (mode->get_height() != mon->height || mode->get_width() != mon->width || mode->get_depth() != mon->depth) {
+            mode->set_res(mon->width, mon->height, mon->depth);
+            update_displays = true;
+        }
+        if (mon_config->flags & VD_AGENT_CONFIG_MONITORS_FLAG_USE_POS && (mode->get_pos_x() != mon->x || mode->get_pos_y() != mon->y)) {
+            mode->set_pos(mon->x, mon->y);
+            update_displays = true;
+        }
+        if (!mode->get_attached()) {
+            mode->set_attached(true);
+            update_displays = true;
+        }
+    }
+    if (update_displays) {
+        _desktop_layout->set_displays();
+    }
+
+    _updating_display_config = false;
+    /* refresh again, in case something else changed */
+    _desktop_layout->get_displays();
     return true;
 }
 
