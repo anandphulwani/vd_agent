@@ -41,7 +41,7 @@ LDFLAGS_SECURITY_CUI = $(LDFLAGS_SECURITY_COMMON) \
 bin_PROGRAMS = vdagent vdservice
 
 vdagent_LDADD = $(LIBPNG_LIBS) $(ZLIB_LIBS) -lwtsapi32 -lgdi32 -luuid -lole32 -loleaut32 -lmpr -lshlwapi vdagent_rc.$(OBJEXT)
-vdagent_CXXFLAGS = $(AM_CXXFLAGS) $(LIBPNG_CFLAGS)
+vdagent_CXXFLAGS = $(AM_CXXFLAGS) $(LIBPNG_CFLAGS) -Wno-unused-variable
 vdagent_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_CUI)
 vdagent_SOURCES =			\
 	common/vdcommon.cpp             \
@@ -75,6 +75,7 @@ vdagent_rc.$(OBJEXT): vdagent/vdagent.rc
 MAINTAINERCLEANFILES += vdagent_rc.$(OBJEXT)
 
 vdservice_LDADD = -lwtsapi32 vdservice_rc.$(OBJEXT)
+vdservice_CXXFLAGS = -Wno-unused-variable
 vdservice_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_CUI)
 vdservice_SOURCES =			\
 	common/stdint.h			\
@@ -93,7 +94,7 @@ MAINTAINERCLEANFILES += vdservice_rc.$(OBJEXT)
 check_PROGRAMS = imagetest
 
 imagetest_LDADD = $(LIBPNG_LIBS) $(ZLIB_LIBS) -lwtsapi32 -lgdi32
-imagetest_CXXFLAGS = $(AM_CXXFLAGS) $(LIBPNG_CFLAGS)
+imagetest_CXXFLAGS = $(AM_CXXFLAGS) $(LIBPNG_CFLAGS) -Wno-unused-variable
 imagetest_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_CUI)
 imagetest_SOURCES =			\
 	common/vdcommon.cpp             \
@@ -115,6 +116,7 @@ TESTS += test-log
 EXTRA_DIST += test-log
 
 test_log_win_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS_SECURITY_CUI)
+test_log_win_CXXFLAGS = -Wno-unused-variable
 test_log_win_SOURCES =			\
 	common/vdcommon.cpp             \
 	common/vdcommon.h		\
@@ -127,6 +129,7 @@ check_PROGRAMS += test-shell-win
 TESTS += test-shell
 EXTRA_DIST += test-shell
 test_shell_win_LDFLAGS = $(AM_LDFLAGS) -Wl,--subsystem,console
+test_shell_win_CXXFLAGS = -Wno-unused-variable
 test_shell_win_LDADD = -luuid -lole32 -loleaut32
 test_shell_win_SOURCES = \
 	vdagent/test-shell.cpp \
