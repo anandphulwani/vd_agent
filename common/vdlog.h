@@ -58,9 +58,9 @@ typedef enum {
 } VDLogLevel;
 
 #ifdef _DEBUG
-static const VDLogLevel log_level = LOG_DEBUG;
+static VDLogLevel log_level = LOG_DEBUG;
 #else
-static const VDLogLevel log_level = LOG_INFO;
+static VDLogLevel log_level = LOG_INFO;
 #endif
 
 #define LOG(type, format, ...) do {                                     \
