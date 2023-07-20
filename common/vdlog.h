@@ -57,11 +57,7 @@ typedef enum {
   LOG_FATAL
 } VDLogLevel;
 
-#ifdef _DEBUG
-static VDLogLevel log_level = LOG_DEBUG;
-#else
-static VDLogLevel log_level = LOG_INFO;
-#endif
+extern VDLogLevel log_level;
 
 #define LOG(type, format, ...) do {                                     \
     if (LOG_ ## type >= log_level && LOG_ ## type <= LOG_FATAL) {       \

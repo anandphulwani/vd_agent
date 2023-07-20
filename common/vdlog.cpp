@@ -27,6 +27,12 @@
 
 #define LOG_ROLL_SIZE (1024 * 1024)
 
+#ifdef _DEBUG
+VDLogLevel log_level = LOG_DEBUG;
+#else
+VDLogLevel log_level = LOG_WARN;
+#endif
+
 VDLog* VDLog::_log = NULL;
 
 VDLog::VDLog(FILE* handle)
