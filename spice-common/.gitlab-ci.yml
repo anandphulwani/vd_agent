@@ -1,0 +1,50 @@
+image: fedora:latest
+
+before_script:
+  - >
+    dnf install git libtool make libasan
+    python3 python3-six python3-pyparsing glib-networking
+    meson ninja-build gdk-pixbuf2-devel
+    glib2-devel pixman-devel openssl-devel libjpeg-devel
+    libcacard-devel cyrus-sasl-devel lz4-devel opus-devel
+    gstreamer1-devel gstreamer1-plugins-base-devel
+    -y
+  - git clone ${CI_REPOSITORY_URL/spice-common.git/spice-protocol.git}
+  - meson --buildtype=release spice-protocol build-spice-protocol --prefix=/usr --werror
+  - ninja -C build-spice-protocol install
+
+makecheck:
+  script:
+  - >
+    CFLAGS='-O2 -pipe -g -fsanitize=address -fno-omit-frame-pointer -Wframe-larger-than=40920'
+    LDFLAGS='-fsanitize=address -lasan'
+    ./autogen.sh --enable-extra-checks
+  - make
+  - make check || (cat tests/test-suite.log && exit 1)
+
+meson-makecheck:
+  script:
+  - >
+    CFLAGS='-O2 -pipe -g -fsanitize=address -fno-omit-frame-pointer -Wframe-larger-than=40920'
+    LDFLAGS='-fsanitize=address -lasan'
+    meson build -Dextra-checks=true || (cat build/meson-logs/meson-log.txt && exit 1)
+  - ninja -C build
+  - (cd build && meson test) || (cat build/meson-logs/testlog.txt && exit 1)
+
+make-win:
+  script:
+  - >
+    dnf install mingw64-gcc mingw64-pkg-config mingw64-pixman mingw64-openssl
+    mingw64-opus mingw64-glib2 mingw64-glib-networking mingw64-gdk-pixbuf
+    'wine-core(x86-64)'
+    -y
+  - mkdir spice-protocol/build
+  - (cd spice-protocol/build && mingw64-meson --werror && ninja install)
+  - NOCONFIGURE=yes ./autogen.sh
+  - >
+    PYTHON=python3
+    CFLAGS='-O2 -pipe -g -fsanitize=address -fno-omit-frame-pointer -Wframe-larger-than=40920'
+    LDFLAGS='-fsanitize=address -lasan'
+    mingw64-configure --enable-extra-checks
+  - make
+  - make LOG_COMPILER=wine check || (cat tests/test-suite.log && exit 1)
