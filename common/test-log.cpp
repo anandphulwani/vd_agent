@@ -22,6 +22,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
+    set_log_level(LOG_INFO);
     TCHAR temp_path[MAX_PATH];
     assert(GetTempPath(ARRAYSIZE(temp_path), temp_path) != 0);
 
