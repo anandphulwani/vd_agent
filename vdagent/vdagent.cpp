@@ -32,6 +32,7 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <algorithm>
+#include <getopt.h>
 
 static int width;
 static int height;
@@ -1834,12 +1835,83 @@ static void usage()
                     "      Print help and exit\n");
 }
 
+static void parse_cmd(int argc, char *argv[])
+{
+    int c, e = 0;
+    if (argc == 1) {
+        usage();
+        exit(1);
+    }
+    const struct option long_options[] = {
+        { "help", 0, 0, 'e' },
+        { "width", 1, 0, 'w' },
+        { "height", 1, 0, 'h' },
+        { "info", 0, 0, 'i' },
+        { "trace", 0, 0, 't' },
+        { 0, 0, 0, 0 },
+    };
+    while ((c = getopt_long(argc, argv, "ew:h:t",
+                            long_options, NULL)) != EOF) {
+        switch (c) {
+        case 'e':
+            goto failed;
+        case 'w': {
+            char *endptr;
+            long value = strtol(optarg, &endptr, 10);
+            if (*endptr != '\0' || value <= 0) {
+                fprintf(stderr, "Invalid width: %s\n", optarg);
+                e++;
+            } else {
+                width = (int)value;
+            }
+            break;
+        }
+        case 'h': {
+            char *endptr;
+            long value = strtol(optarg, &endptr, 10);
+            if (*endptr != '\0' || value <= 0) {
+                fprintf(stderr, "Invalid height: %s\n", optarg);
+                e++;
+            } else {
+                height = (int)value;
+            }
+            break;
+        }
+        case 'i': {
+            // Set log level to LOG_INFO
+            set_log_level(LOG_INFO);
+            break;
+        }
+        case 't': {
+            // Set log level to LOG_TRACE
+            set_log_level(LOG_TRACE);
+            break;
+        }
+        default:
+            e++;
+            break;
+        }
+    }
+    if (e || argc > optind) {
+        goto failed;
+    }
+    if (width <= 0 || height <= 0) {
+        fprintf(stderr, "Invalid width or height\n");
+        goto failed;
+    }
+    return;
+failed:
+    usage();
+    exit(1);
+}
+
 #ifdef __GNUC__
 int main(int argc,char **argv)
 #else
 int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_line, int cmd_show)
 #endif
 {
+    parse_cmd(argc, argv);
     VDAgent* vdagent = VDAgent::get();
     vdagent->run();
     delete vdagent;
