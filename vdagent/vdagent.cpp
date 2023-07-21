@@ -1860,7 +1860,7 @@ static void parse_cmd(int argc, char *argv[])
         { "trace", 0, 0, 't' },
         { 0, 0, 0, 0 },
     };
-    while ((c = getopt_long(argc, argv, "ew:h:t",
+    while ((c = getopt_long(argc, argv, "ew:h:it",
                             long_options, NULL)) != EOF) {
         switch (c) {
         case 'e':
