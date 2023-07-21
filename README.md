@@ -8,7 +8,7 @@ This repository contains the source code for the `vd_agent` application. This ap
 
 - Windows Operating System
 - SPICE (QXL) display adapter
-- SPICE guest tools installed
+- SPICE guest tools installed: [Download](https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-latest.exe)
 
 ## Download and Run
 
@@ -86,6 +86,7 @@ mingw64-make check # This will launch a WINE installer the first time, please cl
 ## Source and Reference URLs
 
 - [vd_agent Win32](https://gitlab.freedesktop.org/spice/win32/vd_agent) The primary source code for `vd_agent` from which this repository is copied at this [commit](https://gitlab.freedesktop.org/spice/win32/vd_agent/-/commit/50175107091d5640cb0bb251807a9fcbae85f0f2).
+- [SPICE Downloads Page](https://www.spice-space.org/download.html)
 - [spice-protocol](https://gitlab.freedesktop.org/spice/spice-protocol) `Spice Protocol` is used as a sub module/ sub directory in the project directory.
 - [spice-common](https://gitlab.freedesktop.org/spice/spice-common) `Spice Common` is used as a sub module/ sub directory in the project directory.
 - [SPICE Group Repository](https://gitlab.freedesktop.org/spice)
