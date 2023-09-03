@@ -43,7 +43,7 @@ Then you will need to clone the repository and run commands in the following way
 
 ```bash
 cd ~/Desktop
-sudo dnf install git libtool make ImageMagick autoconf-archive wine-core.x86_64 wine-core.i686 mingw32-libpng-static mingw32-zlib-static mingw32-gcc-c++ mingw32-winpthreads-static mingw64-libpng-static mingw64-zlib-static mingw64-gcc-c++ mingw64-winpthreads-static
+sudo dnf install git libtool make ImageMagick autoconf-archive wine-core.x86_64 wine-core.i686 mingw32-libpng-static mingw32-zlib-static mingw32-gcc-c++ mingw32-winpthreads-static mingw64-libpng-static mingw64-zlib-static mingw64-gcc-c++ mingw64-winpthreads-static gcc-c++ glibc-static zlib-devel zlib-static libpng-devel libpng-static
 mkdir vd_agent && cd vd_agent
 git config --get core.autocrlf
 git config --global core.autocrlf false # To avoid changing line endings while cloning/commiting/pushing.
