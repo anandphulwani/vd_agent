@@ -687,8 +687,10 @@ bool VDAgent::set_manual_resolution_from_terminal(const VDAgentMonitorsConfig* m
     LOG(TRACE, "SMRFT Step 02.");
 
     for (uint32_t i = 0; i < display_count && i < num_monitors; i++) {
+        LOG(TRACE, "i: %u, display_count: %zu, num_monitors: %u", i, display_count, num_monitors);
         DisplayMode* mode;
         if (monitors != NULL) {
+            LOG(TRACE, "monitors[i] - 1: %i", monitors[i] - 1);
             mode = _desktop_layout->get_display(monitors[i] - 1);
         } else {
             mode = _desktop_layout->get_display(i);
