@@ -1957,6 +1957,10 @@ int main(int argc,char **argv)
 int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_line, int cmd_show)
 #endif
 {
+    VDAgent* vdagent = VDAgent::get();
+    LOG(TRACE, "Running the agent, calling vdagent->run().");
+    vdagent->run();
+
     parse_cmd(argc, argv);
     size_t size = sizeof(VDAgentMonitorsConfig) + sizeof(VDAgentMonConfig);
     char* buffer = new char[size];
@@ -1978,9 +1982,6 @@ int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_l
         mon_config->monitors[index] = *mon;
     }
 
-    VDAgent* vdagent = VDAgent::get();
-    LOG(TRACE, "Running the agent, calling vdagent->run().");
-    vdagent->run();
     LOG(TRACE, "Calling set_manual_resolution_from_terminal().");
     vdagent->set_manual_resolution_from_terminal(mon_config);
     LOG(TRACE, "Finished set_manual_resolution_from_terminal().");
