@@ -1860,9 +1860,10 @@ static void parse_cmd(int argc, char *argv[])
         { "height", 1, 0, 'h' },
         { "info", 0, 0, 'i' },
         { "trace", 0, 0, 't' },
+        { "monitors", 1, 0, 'm' }, // New option for monitors
         { 0, 0, 0, 0 },
     };
-    while ((c = getopt_long(argc, argv, "ew:h:it",
+    while ((c = getopt_long(argc, argv, "ew:h:m:it",
                             long_options, NULL)) != EOF) {
         switch (c) {
         case 'e':
@@ -1897,6 +1898,9 @@ static void parse_cmd(int argc, char *argv[])
         case 't': {
             // Set log level to LOG_TRACE
             set_log_level(LOG_TRACE);
+            break;
+        }        
+        case 'm': {
             break;
         }
         default:
