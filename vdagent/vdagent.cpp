@@ -1903,6 +1903,25 @@ static void parse_cmd(int argc, char *argv[])
             break;
         }        
         case 'm': {
+            monitors = NULL;
+            num_monitors = 0;
+            char *token;
+            char *endptr;
+            // Split the optarg into tokens using ","
+            token = strtok(optarg, ",");
+            while (token != NULL) {
+                long value = strtol(token, &endptr, 10);
+                if (*endptr != '\0' || value <= 0) {
+                    fprintf(stderr, "Invalid monitor index: %s\n", token);
+                    e++;
+                } else {
+                    // Add valid monitor index to the array
+                    num_monitors++;
+                    monitors = (int*)realloc(monitors, num_monitors * sizeof(int));
+                    monitors[num_monitors - 1] = (int)value;
+                }
+                token = strtok(NULL, ",");
+            }
             break;
         }
         default:
@@ -1920,6 +1939,8 @@ static void parse_cmd(int argc, char *argv[])
     return;
 failed:
     usage();
+    free(monitors);
+    monitors = NULL;
     exit(1);
 }
 
