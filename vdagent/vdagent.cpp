@@ -1936,7 +1936,7 @@ int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_l
     VDAgentMonitorsConfig* mon_config = new (buffer) VDAgentMonitorsConfig;
     VDAgentMonConfig* mon = new (buffer + sizeof(VDAgentMonitorsConfig)) VDAgentMonConfig;
 
-    mon_config->num_of_monitors = 1;
+    mon_config->num_of_monitors = num_monitors;
     mon_config->flags = 0;
 
     mon->width = width;
