@@ -36,6 +36,8 @@
 
 static int width;
 static int height;
+static int *monitors = NULL; // Array to store monitor indices
+static uint32_t num_monitors = 50; // Number of monitor indices
 
 #define VD_AGENT_LOG_PATH       TEXT("%svdagent.log")
 #define VD_AGENT_WINCLASS_NAME  TEXT("VDAGENT")
