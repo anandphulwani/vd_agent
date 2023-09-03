@@ -84,6 +84,9 @@ public:
     ~VDAgent();
     bool run();
     bool set_manual_resolution_from_terminal(const VDAgentMonitorsConfig* mon_config);
+    size_t getDisplayCount() const {
+        return _desktop_layout->get_display_count();
+    }
 
 private:
     VDAgent();
@@ -1918,7 +1921,7 @@ static void parse_cmd(int argc, char *argv[], VDAgent* vdagent)
             token = strtok(optarg, ",");
             while (token != NULL) {
                 long value = strtol(token, &endptr, 10);
-                if (*endptr != '\0' || value <= 0) {
+                if (*endptr != '\0' || value <= 0 || static_cast<size_t>(value) > vdagent->getDisplayCount()) {
                     fprintf(stderr, "Invalid monitor index: %s\n", token);
                     e++;
                 } else {
