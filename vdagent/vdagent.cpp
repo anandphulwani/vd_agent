@@ -1837,6 +1837,8 @@ static void usage()
                     "      Set the resolution width\n"
                     "  -h, --height <value>\n"
                     "      Set the resolution height\n"
+                    "  -m, --monitors <index1,index2,...>\n"
+                    "      Set the monitors by index (comma-separated), by default it selects all monitors\n"
                     "  -i, --info\n"
                     "      Set log level to INFO\n"
                     "  -t, --trace\n"
