@@ -1933,7 +1933,8 @@ int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_l
     size_t size = sizeof(VDAgentMonitorsConfig) + sizeof(VDAgentMonConfig);
     char* buffer = new char[size];
 
-    VDAgentMonitorsConfig* mon_config = new (buffer) VDAgentMonitorsConfig;
+    size_t mon_config_total_size = sizeof(VDAgentMonitorsConfig) + num_monitors * sizeof(VDAgentMonConfig);
+    VDAgentMonitorsConfig* mon_config = static_cast<VDAgentMonitorsConfig*>(malloc(mon_config_total_size));
     VDAgentMonConfig* mon = new (buffer + sizeof(VDAgentMonitorsConfig)) VDAgentMonConfig;
 
     mon_config->num_of_monitors = num_monitors;
@@ -1945,7 +1946,9 @@ int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_l
     mon->x = 0;
     mon->y = 0;
 
-    mon_config->monitors[0] = *mon;
+    for (uint32_t index = 0; index < num_monitors; index++) {
+        mon_config->monitors[index] = *mon;
+    }
 
     VDAgent* vdagent = VDAgent::get();
     LOG(TRACE, "Running the agent, calling vdagent->run().");
