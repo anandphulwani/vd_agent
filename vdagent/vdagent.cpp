@@ -1856,7 +1856,7 @@ static void usage()
                     "      Print help and exit\n");
 }
 
-static void parse_cmd(int argc, char *argv[])
+static void parse_cmd(int argc, char *argv[], VDAgent* vdagent)
 {
     int c, e = 0;
     if (argc == 1) {
@@ -1961,7 +1961,7 @@ int APIENTRY _tWinMain(HINSTANCE instance, HINSTANCE prev_instance, LPTSTR cmd_l
     LOG(TRACE, "Running the agent, calling vdagent->run().");
     vdagent->run();
 
-    parse_cmd(argc, argv);
+    parse_cmd(argc, argv, vdagent);
     size_t size = sizeof(VDAgentMonitorsConfig) + sizeof(VDAgentMonConfig);
     char* buffer = new char[size];
 
