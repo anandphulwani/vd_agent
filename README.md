@@ -24,6 +24,11 @@ To use VD Agent, you can run the following commands:
 
 For example, to set the resolution to 1920x1080 and the log level to INFO, you would run: `vdagent --width 1920 --height 1080 --info`
 
+## Run on startup
+ - Copy the `vdagent.exe` from RELEASES section to `C:\Windows\System32\`
+ - Create a `.bat` file, for e.g. `ResolutionSetter.bat`
+ - Add the following contents `C:\Windows\System32\vdagent.exe -w 1800 -h 1000`, change `-w` and `-h` as per your desireable resolution.
+ - Place it in the startup folder, usually `C:\Users\User\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\`, change `User` to your username.
 
 ## Known Issues
 
